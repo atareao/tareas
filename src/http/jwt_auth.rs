@@ -12,10 +12,9 @@ use serde::Serialize;
 use minijinja::context;
 
 use super::AppState;
-use super::super::models::Param;
 use super::ENV;
 
-use crate::models::{
+use super::super::models::{
     User,
     TokenClaims
 };

@@ -1,7 +1,6 @@
 pub mod jwt_auth;
 pub mod estatic;
 pub mod user;
-pub mod estatic;
 pub mod root;
 pub mod podcast;
 
@@ -27,7 +26,7 @@ use tower_http::{
 use once_cell::sync::Lazy;
 
 use crate::models::{
-    Param,
+    AppState,
     Error
 };
 
@@ -36,11 +35,6 @@ pub static ENV: Lazy<Environment<'static>> = Lazy::new(|| {
     env.set_loader(path_loader("templates"));
     env
 });
-
-#[derive(Clone)]
-pub struct AppState {
-    pub pool: SqlitePool,
-}
 
 pub async fn serve(pool: &SqlitePool) -> Result<(), Error>{
 
