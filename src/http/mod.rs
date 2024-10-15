@@ -2,7 +2,6 @@ pub mod jwt_auth;
 pub mod estatic;
 pub mod user;
 pub mod root;
-pub mod podcast;
 
 use std::sync::Arc;
 use sqlx::sqlite::SqlitePool;
@@ -24,6 +23,7 @@ use tower_http::{
     cors::CorsLayer,
 };
 use once_cell::sync::Lazy;
+use std::env;
 
 use crate::models::{
     AppState,
@@ -38,8 +38,17 @@ pub static ENV: Lazy<Environment<'static>> = Lazy::new(|| {
 
 pub async fn serve(pool: &SqlitePool) -> Result<(), Error>{
 
-    let url = Param::get_url(pool).await;
-    let port = Param::get_port(pool).await;
+    let url = env::var("URL")
+        .unwrap_or("".to_string());
+    let port = env::var("PORT")
+        .unwrap_or("".to_string());
+    let jwt_secret = env::var("JWT_SECRET")
+        .unwrap_or("a-secret-very-secret".to_string());
+    let jwt_expires_in = env::var("60m")
+        .unwrap_or("a-secret-very-secret".to_string());
+    let jwt_max_age = env::var("JWT_MAXAGE")
+        .unwrap_or("60".to_string()).parse().unwrap_or(60);
+
     let cors = CorsLayer::new()
         .allow_origin(url.parse::<HeaderValue>().unwrap())
         .allow_methods([Method::GET, Method::POST, Method::PATCH, Method::DELETE])
@@ -50,9 +59,12 @@ pub async fn serve(pool: &SqlitePool) -> Result<(), Error>{
     env.set_loader(path_loader("templates"));
 
     let app = api_router(
-            AppState {
-                pool: pool.clone(),
-            })
+            AppState::new(
+               pool.clone(),
+                jwt_secret,
+                jwt_expires_in,
+                jwt_max_age
+            ))
             .layer(TraceLayer::new_for_http())
             .layer(cors);
 
@@ -63,14 +75,9 @@ pub async fn serve(pool: &SqlitePool) -> Result<(), Error>{
         .await?)
 }
 
-
 fn api_router(app_state: AppState) -> Router {
     estatic::router()
         .merge(root::router(Arc::new(app_state.clone())))
         .merge(user::router())
-        .merge(podcast::router(Arc::new(app_state.clone())))
-        .merge(config::router(Arc::new(app_state.clone())))
         .with_state(Arc::new(app_state.clone()))
 }
-
-
