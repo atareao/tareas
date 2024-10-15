@@ -9,6 +9,7 @@ pub struct User {
     pub hashed_password: String,
     pub position: i64,
     pub active: bool,
+    pub admin: bool,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
 }
@@ -21,6 +22,7 @@ impl User {
             hashed_password: row.get("hashed_password"),
             position: row.get("position"),
             active: row.get("active"),
+            admin: row.get("admin"),
             created_at: row.get("created_at"),
             updated_at: row.get("updated_at"),
         }
@@ -29,13 +31,14 @@ impl User {
     // CRUD
 
     pub async fn create(pool: &SqlitePool, username: &str, hashed_password: &str) -> Result<Self, Error>{
-        let sql = "INSERT INTO users (username, hashed_password, position, active, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *";
+        let sql = "INSERT INTO users (username, hashed_password, position, active, admin, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *";
         let now = Utc::now();
         query(sql)
             .bind(username)
             .bind(hashed_password)
             .bind(0)
             .bind(true)
+            .bind(false)
             .bind(now)
             .bind(now)
             .map(Self::from_row)
@@ -70,12 +73,13 @@ impl User {
     }
 
     pub async fn update(&self, pool: &SqlitePool) -> Result<Self, Error>{
-        let sql = "UPDATE users SET hashed_password = $1, position = $2, active = $3, updated_at = $4 WHERE id = $5 RETURNING *";
+        let sql = "UPDATE users SET hashed_password = $1, position = $2, active = $3, admon = $4, updated_at = $5 WHERE id = $6 RETURNING *";
         let now = Utc::now();
         query(sql)
             .bind(self.hashed_password.clone())
             .bind(self.position)
             .bind(self.active)
+            .bind(self.admin)
             .bind(now)
             .bind(self.id)
             .map(Self::from_row)
