@@ -19,11 +19,6 @@ use super::super::models::{
     TokenClaims
 };
 
-#[derive(Debug, Serialize)]
-pub struct ErrorResponse {
-    pub status: &'static str,
-    pub message: &'static str,
-}
 
 pub async fn auth<B>(
     cookie_jar: CookieJar,
