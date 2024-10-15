@@ -1,4 +1,5 @@
 pub mod jwt_auth;
+pub mod estatic;
 pub mod user;
 pub mod estatic;
 pub mod root;
