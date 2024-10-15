@@ -2,6 +2,7 @@ pub mod jwt_auth;
 pub mod estatic;
 pub mod user;
 pub mod root;
+pub mod lists;
 
 use std::sync::Arc;
 use sqlx::sqlite::SqlitePool;
