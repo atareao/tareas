@@ -72,7 +72,7 @@ pub async fn auth<B>(
 fn get_html_error(_app_state: &Arc<AppState>, msg: &str) -> Html<String>{
     let template = ENV.get_template("error.html").unwrap();
     let ctx = context! {
-        title             => "Podmixer",
+        title             => "Tareas",
         error_title       => "Error",
         error_description => msg,
     };

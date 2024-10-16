@@ -41,41 +41,44 @@ impl List {
             .await
     }
 
-    pub async fn read_by_name(pool: &SqlitePool, name: &str) -> Result<Self, Error>{
-        let sql = "SELECT * FROM lists WHERE name = $1";
+    pub async fn read_by_name(pool: &SqlitePool, name: &str, user_id: i64) -> Result<Self, Error>{
+        let sql = "SELECT * FROM lists WHERE name = $1 AND user_id = $2";
         query(sql)
             .bind(name)
+            .bind(user_id)
             .map(Self::from_row)
             .fetch_one(pool)
             .await
     }
 
-    pub async fn read_by_id(pool: &SqlitePool, id: i64) -> Result<Self, Error>{
-        let sql = "SELECT * FROM lists WHERE id = $1";
+    pub async fn read_by_id(pool: &SqlitePool, id: i64, user_id: i64) -> Result<Self, Error>{
+        let sql = "SELECT * FROM lists WHERE id = $1 AND user_id = $2";
         query(sql)
             .bind(id)
+            .bind(user_id)
             .map(Self::from_row)
             .fetch_one(pool)
             .await
     }
 
-    pub async fn read_all(pool: &SqlitePool) -> Result<Vec<Self>, Error>{
-        let sql = "SELECT * FROM lists";
+    pub async fn read_all(pool: &SqlitePool, user_id: i64) -> Result<Vec<Self>, Error>{
+        let sql = "SELECT * FROM lists AND user_id = $1";
         query(sql)
+            .bind(user_id)
             .map(Self::from_row)
             .fetch_all(pool)
             .await
     }
 
     pub async fn update(&self, pool: &SqlitePool) -> Result<Self, Error>{
-        let sql = "UPDATE lists SET position = $1, active = $2, user_id =$3, updated_at = $4 WHERE id = $5 RETURNING *";
+        let sql = "UPDATE lists SET position = $1, active = $2, updated_at = $3 WHERE id = $4 AND user_id = $5 RETURNING *";
         let now = Utc::now();
         query(sql)
             .bind(self.position)
             .bind(self.active)
-            .bind(self.user_id)
             .bind(now)
             .bind(self.id)
+            .bind(self.user_id)
             .map(Self::from_row)
             .fetch_one(pool)
             .await

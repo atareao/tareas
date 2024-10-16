@@ -6,6 +6,7 @@ use axum::{
     extract::{
         State,
         Query,
+        Extension
     },
     http::StatusCode,
     Router,
@@ -14,6 +15,8 @@ use axum::{
     Json,
     middleware::from_fn_with_state
 };
+
+use crate::models::User;
 
 use super::super::{
     models::{
@@ -47,9 +50,10 @@ pub fn router(app_state: Arc<AppState>) -> Router<Arc<AppState>> {
 }
 
 pub async fn read(
+    Extension(user): Extension<User>,
     State(app_state): State<Arc<AppState>>,
 ) -> impl IntoResponse{
-    List::read_all(&app_state.pool)
+    List::read_all(&app_state.pool, user.id)
         .await
         .map(|podcasts| Json(json!({
             "result": "ok",
@@ -62,9 +66,11 @@ pub async fn read(
 }
 
 async fn create_or_update(
+    Extension(user): Extension<User>,
     State(app_state): State<Arc<AppState>>,
-    Json(podcast): Json<FormPodcast>,
+    Json(podcast): Json<List>,
 ) -> impl IntoResponse{
+    List::create(pool, name, user_id)
     Podcast::create_or_update(&app_state.pool, &podcast.name, &podcast.url, podcast.active)
         .await
         .map(|podcasts| (StatusCode::OK, Json(json!({
@@ -77,6 +83,7 @@ async fn create_or_update(
         }))))
 }
 async fn delete(
+    Extension(user): Extension<User>,
     State(app_state): State<Arc<AppState>>,
     Query(params): Query<Params>,
 ) -> impl IntoResponse{
