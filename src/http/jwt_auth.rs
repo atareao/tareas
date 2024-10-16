@@ -8,7 +8,6 @@ use axum::{
 
 use axum_extra::extract::cookie::CookieJar;
 use jsonwebtoken::{decode, DecodingKey, Validation};
-use serde::Serialize;
 use minijinja::context;
 
 use super::AppState;
@@ -47,8 +46,7 @@ pub async fn auth<B>(
 
     let claims = decode::<TokenClaims>(
         &token,
-        &DecodingKey::from_secret(
-            Param::get_secret(&app_state.pool).await.as_bytes()),
+        &DecodingKey::from_secret(app_state.jwt_secret.as_bytes()),
         &Validation::default(),
     )
     .map_err(|_| {
@@ -58,7 +56,7 @@ pub async fn auth<B>(
     .claims;
 
     let user_name = &claims.sub.to_string();
-    let user = User::get_by_name(&app_state.pool, user_name)
+    let user = User::read_by_name(&app_state.pool, user_name)
         .await
         .map_err(|_e| {
         let msg = "The user belonging to this token no longer exists. Please <a href='/login'>log in</a>";
