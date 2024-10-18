@@ -3,6 +3,11 @@ use chrono::{DateTime, Utc};
 use sqlx::{sqlite::{SqlitePool, SqliteRow}, query, Row, Error};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SimpleList {
+    pub name: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct List {
     pub id: i64,
     pub name: String,
@@ -51,11 +56,10 @@ impl List {
             .await
     }
 
-    pub async fn read_by_id(pool: &SqlitePool, id: i64, user_id: i64) -> Result<Self, Error>{
-        let sql = "SELECT * FROM lists WHERE id = $1 AND user_id = $2";
+    pub async fn read_by_id(pool: &SqlitePool, id: i64) -> Result<Self, Error>{
+        let sql = "SELECT * FROM lists WHERE id = $1";
         query(sql)
             .bind(id)
-            .bind(user_id)
             .map(Self::from_row)
             .fetch_one(pool)
             .await
@@ -84,10 +88,10 @@ impl List {
             .await
     }
 
-    pub async fn delete(&self, pool: &SqlitePool) -> Result<Self, Error>{
+    pub async fn delete(pool: &SqlitePool, id: i64) -> Result<Self, Error>{
         let sql = "DELETE FROM lists WHERE id = $1 RETURNING *";
         query(sql)
-            .bind(self.id)
+            .bind(id)
             .map(Self::from_row)
             .fetch_one(pool)
             .await

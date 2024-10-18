@@ -6,6 +6,7 @@ use axum::{
     extract::{
         State,
         Query,
+        Path,
         Extension
     },
     http::StatusCode,
@@ -20,6 +21,7 @@ use crate::models::User;
 
 use super::super::{
     models::{
+        SimpleList,
         List,
         AppState,
     },
@@ -36,28 +38,32 @@ struct Params {
 pub fn router(app_state: Arc<AppState>) -> Router<Arc<AppState>> {
     Router::new()
         .route("/lists",
-            routing::get(read)
+            routing::get(read_all)
+            .route_layer(from_fn_with_state(app_state.clone(), auth))
+        )
+        .route("/lists/:id",
+            routing::get(read_one)
             .route_layer(from_fn_with_state(app_state.clone(), auth))
         )
         .route("/lists",
-            routing::post(create_or_update)
+            routing::post(create)
             .route_layer(from_fn_with_state(app_state.clone(), auth))
         )
-        .route("/lists",
+        .route("/lists/:id",
             routing::delete(delete)
             .route_layer(from_fn_with_state(app_state.clone(), auth))
         )
 }
 
-pub async fn read(
+pub async fn read_all(
     Extension(user): Extension<User>,
     State(app_state): State<Arc<AppState>>,
 ) -> impl IntoResponse{
     List::read_all(&app_state.pool, user.id)
         .await
-        .map(|podcasts| Json(json!({
+        .map(|list| Json(json!({
             "result": "ok",
-            "content": podcasts
+            "content": list
         })))
         .map_err(|e| Json(json!({
             "result": "ko",
@@ -65,34 +71,50 @@ pub async fn read(
         })))
 }
 
-async fn create_or_update(
+async fn create(
     Extension(user): Extension<User>,
     State(app_state): State<Arc<AppState>>,
-    Json(podcast): Json<List>,
+    Json(list): Json<SimpleList>,
 ) -> impl IntoResponse{
-    List::create(pool, name, user_id)
-    Podcast::create_or_update(&app_state.pool, &podcast.name, &podcast.url, podcast.active)
+    List::create(&app_state.pool, &list.name, user.id)
         .await
-        .map(|podcasts| (StatusCode::OK, Json(json!({
+        .map(|list| (StatusCode::OK, Json(json!({
             "result": "ok",
-            "content": podcasts
+            "content": list
         }))))
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({
             "result": "ko",
             "content": e.to_string(),
         }))))
 }
-async fn delete(
-    Extension(user): Extension<User>,
+
+pub async fn read_one(
+    Extension(_user): Extension<User>,
     State(app_state): State<Arc<AppState>>,
-    Query(params): Query<Params>,
+    Path(list_id): Path<i64>,
 ) -> impl IntoResponse{
-    debug!("podcast: {}", params.id);
-    List::delete(&app_state.pool, params.id)
+    List::read_by_id(&app_state.pool, list_id)
         .await
-        .map(|podcasts| Json(json!({
+        .map(|list| Json(json!({
             "result": "ok",
-            "content": podcasts
+            "content": list
+        })))
+        .map_err(|e| Json(json!({
+            "result": "ko",
+            "content": e.to_string(),
+        })))
+}
+async fn delete(
+    Extension(_user): Extension<User>,
+    State(app_state): State<Arc<AppState>>,
+    Path(list_id): Path<i64>,
+) -> impl IntoResponse{
+    debug!("list: {}", list_id);
+    List::delete(&app_state.pool, list_id)
+        .await
+        .map(|list| Json(json!({
+            "result": "ok",
+            "content": list
         })))
         .map_err(|e| Json(json!({
             "result": "ko",
