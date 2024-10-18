@@ -2,6 +2,13 @@ use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};
 use sqlx::{sqlite::{SqlitePool, SqliteRow}, query, Row, Error};
 
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SimpleUser {
+    pub username: String,
+    pub password: String,
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct User {
     pub id: i64,

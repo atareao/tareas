@@ -5,7 +5,7 @@ mod token_claims;
 mod app_state;
 mod error_response;
 
-pub use user::User;
+pub use user::{SimpleUser, User};
 pub use list::List;
 pub use task::Task;
 pub use token_claims::TokenClaims;
