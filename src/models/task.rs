@@ -60,7 +60,7 @@ impl Task {
     }
 
     pub async fn read_all(pool: &SqlitePool) -> Result<Vec<Self>, Error>{
-        let sql = "SELECT * FROM tasks";
+        let sql = "SELECT * FROM tasks ORDER BY position, name";
         query(sql)
             .map(Self::from_row)
             .fetch_all(pool)

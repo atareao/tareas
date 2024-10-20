@@ -66,7 +66,7 @@ impl List {
     }
 
     pub async fn read_all(pool: &SqlitePool, user_id: i64) -> Result<Vec<Self>, Error>{
-        let sql = "SELECT * FROM lists AND user_id = $1";
+        let sql = "SELECT * FROM lists AND user_id = $1 ORDER BY position, name";
         query(sql)
             .bind(user_id)
             .map(Self::from_row)

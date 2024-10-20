@@ -18,5 +18,3 @@ async fn handle_error() -> (StatusCode, &'static str){
     (StatusCode::INTERNAL_SERVER_ERROR, "Something went wrong...: ")
 }
 
-
-
