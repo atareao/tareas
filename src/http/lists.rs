@@ -5,7 +5,6 @@ use serde_json::{json, Value};
 use axum::{
     extract::{
         State,
-        Query,
         Path,
         Extension
     },
@@ -24,6 +23,8 @@ use super::super::{
         SimpleList,
         List,
         AppState,
+        Task,
+        SimpleTask,
     },
     http::jwt_auth::auth
 };
@@ -46,11 +47,23 @@ pub fn router(app_state: Arc<AppState>) -> Router<Arc<AppState>> {
             .route_layer(from_fn_with_state(app_state.clone(), auth))
         )
         .route("/lists",
-            routing::post(create)
+            routing::post(create_list)
+            .route_layer(from_fn_with_state(app_state.clone(), auth))
+        )
+        .route("/lists",
+            routing::put(update_list)
             .route_layer(from_fn_with_state(app_state.clone(), auth))
         )
         .route("/lists/:id",
-            routing::delete(delete)
+            routing::delete(delete_list)
+            .route_layer(from_fn_with_state(app_state.clone(), auth))
+        )
+        .route("/lists/:id",
+            routing::post(create_task)
+            .route_layer(from_fn_with_state(app_state.clone(), auth))
+        )
+        .route("/tasks/:id",
+            routing::delete(delete_task)
             .route_layer(from_fn_with_state(app_state.clone(), auth))
         )
 }
@@ -71,7 +84,7 @@ pub async fn read_all(
         })))
 }
 
-async fn create(
+async fn create_list(
     Extension(user): Extension<User>,
     State(app_state): State<Arc<AppState>>,
     Json(list): Json<SimpleList>,
@@ -104,13 +117,68 @@ pub async fn read_one(
             "content": e.to_string(),
         })))
 }
-async fn delete(
+
+async fn update_list(
+    Extension(_user): Extension<User>,
+    State(app_state): State<Arc<AppState>>,
+    Json(list): Json<List>,
+) -> impl IntoResponse{
+    debug!("list: {:?}", list);
+    list.update(&app_state.pool)
+        .await
+        .map(|list| Json(json!({
+            "result": "ok",
+            "content": list
+        })))
+        .map_err(|e| Json(json!({
+            "result": "ko",
+            "content": e.to_string(),
+        })))
+}
+async fn delete_list(
     Extension(_user): Extension<User>,
     State(app_state): State<Arc<AppState>>,
     Path(list_id): Path<i64>,
 ) -> impl IntoResponse{
     debug!("list: {}", list_id);
     List::delete(&app_state.pool, list_id)
+        .await
+        .map(|list| Json(json!({
+            "result": "ok",
+            "content": list
+        })))
+        .map_err(|e| Json(json!({
+            "result": "ko",
+            "content": e.to_string(),
+
+        })))
+}
+
+async fn create_task(
+    Extension(_user): Extension<User>,
+    State(app_state): State<Arc<AppState>>,
+    Path(list_id): Path<i64>,
+    Json(task): Json<SimpleTask>,
+) -> impl IntoResponse{
+    Task::create(&app_state.pool, &task.name, list_id)
+        .await
+        .map(|task| (StatusCode::OK, Json(json!({
+            "result": "ok",
+            "content": task
+        }))))
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({
+            "result": "ko",
+            "content": e.to_string(),
+        }))))
+}
+
+async fn delete_task(
+    Extension(_user): Extension<User>,
+    State(app_state): State<Arc<AppState>>,
+    Path(task_id): Path<i64>,
+) -> impl IntoResponse{
+    debug!("task: {}", task_id);
+    Task::delete(&app_state.pool, task_id)
         .await
         .map(|list| Json(json!({
             "result": "ok",

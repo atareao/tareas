@@ -7,7 +7,7 @@ mod error_response;
 
 pub use user::{SimpleUser, User};
 pub use list::{SimpleList, List};
-pub use task::Task;
+pub use task::{SimpleTask, Task};
 pub use token_claims::TokenClaims;
 pub use app_state::AppState;
 pub use error_response::ErrorResponse;

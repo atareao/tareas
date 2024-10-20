@@ -88,10 +88,10 @@ impl List {
             .await
     }
 
-    pub async fn delete(pool: &SqlitePool, id: i64) -> Result<Self, Error>{
+    pub async fn delete(pool: &SqlitePool, list_id: i64) -> Result<Self, Error>{
         let sql = "DELETE FROM lists WHERE id = $1 RETURNING *";
         query(sql)
-            .bind(id)
+            .bind(list_id)
             .map(Self::from_row)
             .fetch_one(pool)
             .await

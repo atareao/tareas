@@ -3,6 +3,11 @@ use chrono::{DateTime, Utc};
 use sqlx::{sqlite::{SqlitePool, SqliteRow}, query, Row, Error};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SimpleTask {
+    pub name: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Task {
     pub id: i64,
     pub name: String,
@@ -81,10 +86,10 @@ impl Task {
             .await
     }
 
-    pub async fn delete(&self, pool: &SqlitePool) -> Result<Self, Error>{
+    pub async fn delete(pool: &SqlitePool, task_id: i64) -> Result<Self, Error>{
         let sql = "DELETE FROM lists WHERE id = $1 RETURNING *";
         query(sql)
-            .bind(self.id)
+            .bind(task_id)
             .map(Self::from_row)
             .fetch_one(pool)
             .await
