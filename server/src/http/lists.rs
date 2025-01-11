@@ -77,14 +77,10 @@ async fn update(
         Some(name) => name,
         None => return Response::create(StatusCode::BAD_REQUEST, "Name is required", Data::None),
     };
-    List::update(&app_state.pool, id, name)
-        .await
-        .map(|list| Response::create(StatusCode::OK, "Updated", Data::One(list.to_json())))
-        .unwrap_or(Response::create(
-            StatusCode::INTERNAL_SERVER_ERROR,
-            "Can not update list",
-            Data::None,
-        ))
+    match List::update(&app_state.pool, id, name).await {
+            Ok(list) => Response::create(StatusCode::OK, "Updated", Data::One(list.to_json())),
+            Err(e) => Response::create(StatusCode::INTERNAL_SERVER_ERROR, e.to_string().as_str(), Data::None)
+    }
 }
 
 async fn delete(
