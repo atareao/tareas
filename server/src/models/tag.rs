@@ -7,6 +7,7 @@ use serde_json::Value;
 pub struct Tag {
     pub id: i64,
     pub name: String,
+    pub position : i64,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -16,6 +17,7 @@ impl Tag {
         Self{
             id: row.get("id"),
             name: row.get("name"),
+            position: row.get("position"),
             created_at: row.get("created_at"),
             updated_at: row.get("updated_at"),
         }
@@ -25,13 +27,14 @@ impl Tag {
         serde_json::json!({
             "id": self.id,
             "name": self.name,
+            "position": self.position,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
         })
     }
 
-    pub async fn create(pool: &SqlitePool, name: &str) -> Result<Self, Error>{
-        let sql = "INSERT INTO tags (name, created_at, updated_at) VALUES ($1, $2, $2) RETURNING *";
+    pub async fn create(pool: &SqlitePool, name: &str, position: i64) -> Result<Self, Error>{
+        let sql = "INSERT INTO tags (name, position, created_at, updated_at) VALUES ($1, $2, $3, $3) RETURNING *";
         query(sql)
             .bind(name)
             .bind(Utc::now())
@@ -50,7 +53,7 @@ impl Tag {
     }
 
     pub async fn read_all(pool: &SqlitePool) -> Result<Vec<Self>, Error>{
-        let sql = "SELECT * FROM tags";
+        let sql = "SELECT * FROM tags ORDER BY position";
         query(sql)
             .map(Self::from_row)
             .fetch_all(pool)
@@ -58,7 +61,7 @@ impl Tag {
     }
 
     pub async fn read_all_for_task(pool: &SqlitePool, task_id: i64) -> Result<Vec<Self>, Error>{
-        let sql = "SELECT * FROM tags WHERE id IN (SELECT tag_id FROM tasks_tags WHERE task_id = $1)";
+        let sql = "SELECT * FROM tags WHERE id IN (SELECT tag_id FROM tasks_tags WHERE task_id = $1 ORDER BY position)";
         query(sql)
             .bind(task_id)
             .map(Self::from_row)
@@ -66,10 +69,11 @@ impl Tag {
             .await
     }
 
-    pub async fn update(pool: &SqlitePool, id: i64, name: &str) -> Result<Self, Error>{
-        let sql = "UPDATE tags SET name = $1, updated_at = $2 WHERE id = $3 RETURNING *";
+    pub async fn update(pool: &SqlitePool, id: i64, name: &str, position: i64) -> Result<Self, Error>{
+        let sql = "UPDATE tags SET name = $1, poistion = $2, updated_at = $3 WHERE id = $4 RETURNING *";
         query(sql)
             .bind(name)
+            .bind(position)
             .bind(Utc::now())
             .bind(id)
             .map(Self::from_row)
@@ -95,7 +99,7 @@ impl Tag {
     }
 
     pub async fn search(pool: &SqlitePool, name: &str) -> Result<Vec<Self>, Error>{
-        let sql = "SELECT * FROM tags WHERE LOWER(name) LIKE $1";
+        let sql = "SELECT * FROM tags WHERE LOWER(name) LIKE $1 ORDER BY position";
         query(sql)
             .bind(format!("%{}%", name.to_lowercase()))
             .map(Self::from_row)
