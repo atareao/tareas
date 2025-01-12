@@ -104,12 +104,11 @@ async fn delete(
     State(app_state): State<Arc<AppState>>,
     Query(id): Query<i64>,
 ) -> impl IntoResponse {
-    List::delete(&app_state.pool, id)
-        .await
-        .map(|list| Response::create(StatusCode::OK, "Deleted", Data::One(list.to_json())))
-        .unwrap_or(Response::create(
-            StatusCode::INTERNAL_SERVER_ERROR,
-            "Can not delete list",
-            Data::None,
-        ))
+    match List::delete(&app_state.pool, id).await {
+        Ok(list) => Response::create(StatusCode::OK, "Deleted", Data::One(list.to_json())),
+        Err(e) => {
+            let message = format!("Can not delete list. {e}");
+            Response::create(StatusCode::INTERNAL_SERVER_ERROR, &message, Data::None)
+        }
+    }
 }
