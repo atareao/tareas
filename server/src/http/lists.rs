@@ -1,4 +1,4 @@
-use crate::models::{AppState, Data, List, Response, OptionalId};
+use crate::models::{AppState, Data, List, OptionalId, Response};
 use axum::{
     extract::{Query, State},
     http::StatusCode,
@@ -20,17 +20,24 @@ async fn create(
     State(app_state): State<Arc<AppState>>,
     Json(body): Json<serde_json::Value>,
 ) -> impl IntoResponse {
-    match body["name"].as_str() {
-        Some(name) => List::create(&app_state.pool, name)
-            .await
-            .map(|list| Response::create(StatusCode::CREATED, "Created", Data::One(list.to_json())))
-            .unwrap_or(Response::create(
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "Can not create list",
-                Data::None,
-            )),
-        None => Response::create(StatusCode::BAD_REQUEST, "Name is required", Data::None),
-    }
+    let name = match body["name"].as_str() {
+        Some(name) => name,
+        None => return Response::create(StatusCode::BAD_REQUEST, "Name is required", Data::None),
+    };
+    let position = match body["position"].as_i64() {
+        Some(position) => position,
+        None => {
+            return Response::create(StatusCode::BAD_REQUEST, "Position is required", Data::None)
+        }
+    };
+    List::create(&app_state.pool, name, position)
+        .await
+        .map(|list| Response::create(StatusCode::CREATED, "Created", Data::One(list.to_json())))
+        .unwrap_or(Response::create(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Can not create list",
+            Data::None,
+        ))
 }
 
 async fn read(
@@ -77,9 +84,19 @@ async fn update(
         Some(name) => name,
         None => return Response::create(StatusCode::BAD_REQUEST, "Name is required", Data::None),
     };
-    match List::update(&app_state.pool, id, name).await {
-            Ok(list) => Response::create(StatusCode::OK, "Updated", Data::One(list.to_json())),
-            Err(e) => Response::create(StatusCode::INTERNAL_SERVER_ERROR, e.to_string().as_str(), Data::None)
+    let position = match body["position"].as_i64() {
+        Some(position) => position,
+        None => {
+            return Response::create(StatusCode::BAD_REQUEST, "Position is required", Data::None)
+        }
+    };
+    match List::update(&app_state.pool, id, name, position).await {
+        Ok(list) => Response::create(StatusCode::OK, "Updated", Data::One(list.to_json())),
+        Err(e) => Response::create(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            e.to_string().as_str(),
+            Data::None,
+        ),
     }
 }
 
