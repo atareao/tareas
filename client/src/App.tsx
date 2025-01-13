@@ -1,30 +1,42 @@
-//import * as React from 'react';
-import { createTheme } from '@mui/material/styles';
-import { PageContainer } from '@toolpad/core/PageContainer';
-import { AppProvider } from '@toolpad/core/AppProvider';
-import { useDemoRouter } from '@toolpad/core/internal';
-import Paper from '@mui/material/Paper';
+import Container from '@mui/material/Container';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import Link from '@mui/material/Link';
+import BasicTabs from './components/BasicTabs';
+import CustomTabs from './components/CustomTabs';
+import List from './models/list';
 
-const NAVIGATION = [
-    { segment: '', title: 'Home' },
-    { segment: 'orders', title: 'Orders' },
-];
+function Copyright() {
+    return (
+        <Typography
+            variant="body2"
+            align="center"
+            sx={{
+                color: 'text.secondary',
+            }}
+        >
+            {'Copyright © '}
+            <Link color="inherit" href="https://mui.com/">
+                Your Website
+            </Link>{' '}
+            {new Date().getFullYear()}.
+        </Typography>
+    );
+}
 
 export default function App() {
-    const router = useDemoRouter('/orders');
-    const darkTheme = createTheme({
-        palette: {
-            mode: 'dark',
-        },
-    });
-
+    const lists: List[] = [];
+    lists.push(new List('List 1'));
+    lists.push(new List('List 2'));
+    lists.push(new List('List 3'));
+    lists.push(new List('List 4'));
     return (
-            <AppProvider navigation={NAVIGATION} router={router} theme={darkTheme}>
-                <Paper sx={{ width: '100%' }}>
-                    {/* preview-start */}
-                    <PageContainer>Page content</PageContainer>
-                    {/* preview-end */}
-                </Paper>
-            </AppProvider>
+        <Container>
+            <CustomTabs lists={lists}/>
+            <BasicTabs />
+            <Box sx={{ my: 4 }}>
+                <Copyright />
+            </Box>
+        </Container>
     );
 }
