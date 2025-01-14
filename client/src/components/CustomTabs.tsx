@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { Component, useState } from 'react';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Button from '@mui/material/Button';
 import List from '../models/list';
@@ -7,7 +7,7 @@ interface Props {
     lists: List[],
 }
 
-export default class CustomTabs extends React.Component {
+export default class CustomTabs extends Component {
     selected: number = 2;
     buttons: Button[];
 
@@ -31,6 +31,10 @@ export default class CustomTabs extends React.Component {
                 this.buttons.push(<Button variant="outlined">{list.name}</Button>);
             }
         }
+    }
+    update(newSelected: number){
+        const old = this.selected;
+
     }
     render() {
         return (
