@@ -2,10 +2,8 @@ import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
-import BasicTabs from './components/BasicTabs';
-import CustomTabs from './components/CustomTabs';
 import List from './models/list';
-
+import MainMenu from './components/main_menu';
 function Copyright() {
     return (
         <Typography
@@ -32,8 +30,9 @@ export default function App() {
     lists.push(new List('List 4'));
     return (
         <Container>
-            <CustomTabs lists={lists}/>
-            <BasicTabs />
+            <Box sx={{ my: 4 }}>
+                <MainMenu />
+            </Box>
             <Box sx={{ my: 4 }}>
                 <Copyright />
             </Box>

@@ -2,6 +2,9 @@ dev:
     cd client && pnpm i && pnpm run build && rm -rf ../server/static && mkdir ../server/static && cp -r ./dist/* ../server/static
     cd server && RUST_LOG=debug cargo run
 
+clientr:
+    cd client && pnpm run dev
+
 buildr:
     cd server && cargo build
 
