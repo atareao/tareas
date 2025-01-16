@@ -1,22 +1,36 @@
-
 import * as React from 'react';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import ApiResponse from '../models/api_response';
+import ApiList from '../models/api_list';
 
 export default class MainMenu extends React.Component {
 
     state = {
         value: 0,
+        lists: [],
     }
 
     constructor(props: any) {
         super(props);
-        this.state = { value: 0 };
+        this.state = { value: 0, lists: [] };
+        fetch('/api/v1/lists')
+        .then((res) => {
+            console.log(`Response: ${res.status}`);
+            console.log(`Response: ${res}`);
+            return res.json();
+        })
+        .then((data: ApiResponse) => {
+            console.log(data);
+            if(data.status === 200){
+                this.setState({lists: data.data});
+            }
+        });
     }
 
-    handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    handleChange = (_event: React.SyntheticEvent, newValue: number) => {
         this.setState({ value: newValue });
     }
 
@@ -41,6 +55,9 @@ export default class MainMenu extends React.Component {
     }
 
     getTabs() {
+        const tabs = this.state.lists.map((list: ApiList, index) => {
+            return <Tab key={index} label={list.name} />
+        });
         return (
             <Box
                 display="flex"
@@ -62,12 +79,7 @@ export default class MainMenu extends React.Component {
                         aria-label="scrollable force tabs example"
                     >
                         <Tab onClick={() => { console.log("Item One") }} label="Item One" />
-                        <Tab label="Item Two" />
-                        <Tab label="Item Three" />
-                        <Tab label="Item Four" />
-                        <Tab label="Item Five" />
-                        <Tab label="Item Six" />
-                        <Tab label="Item Seven" />
+                        {tabs}
                     </Tabs>
                 </Box>
             </Box>
@@ -76,7 +88,7 @@ export default class MainMenu extends React.Component {
     }
 
     render() {
-        if (true) {
+        if (this.state.lists.length === 0) {
             return this.getButtonFirstList();
         }
         return this.getTabs();

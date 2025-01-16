@@ -1,7 +1,6 @@
 use axum::{http::StatusCode, Json};
 use serde::{Serialize, Serializer, Deserialize};
 use serde_json::Value;
-use serde_with::{serde_as, NoneAsEmptyString};
 
 #[derive(Debug, Serialize, Clone)]
 pub struct Response {
@@ -10,11 +9,14 @@ pub struct Response {
     pub data: Data,
 }
 
-#[serde_as]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct OptionalId {
-    #[serde_as(as = "NoneAsEmptyString")]
+    #[serde(default = "default_id")]
     pub id: Option<i64>,
+}
+
+fn default_id() -> Option<i64> {
+    None
 }
 
 #[derive(Debug, Clone)]
