@@ -5,7 +5,7 @@ import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 
-export default class ScrollableTabsButtonForce extends React.Component {
+export default class MainMenu extends React.Component {
 
     state = {
         value: 0,
