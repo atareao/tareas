@@ -2,9 +2,9 @@ import * as React from 'react';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
 import ApiResponse from '../models/api_response';
 import ApiList from '../models/api_list';
+import CreateFirstList from './create_first_list';
 
 export default class MainMenu extends React.Component {
 
@@ -42,14 +42,7 @@ export default class MainMenu extends React.Component {
                 justifyContent="center"
                 alignItems="center"
             >
-                <Button
-                    onClick={() => { console.log("Create List") }}
-                    variant="contained"
-                    color="primary"
-                    size="small"
-                >
-                    Create First List
-                </Button>
+                <CreateFirstList />
             </Box>
         );
     }
