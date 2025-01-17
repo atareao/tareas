@@ -4,7 +4,7 @@ import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
 import ApiResponse from '../models/api_response';
 import ApiList from '../models/api_list';
-import CreateFirstList from './create_first_list';
+import CreateList from './create_list';
 
 export default class MainMenu extends React.Component {
 
@@ -34,27 +34,11 @@ export default class MainMenu extends React.Component {
         this.setState({ value: newValue });
     }
 
-    getButtonFirstList() {
-        console.log("Create List");
-        return (
-            <Box
-                display="flex"
-                justifyContent="center"
-                alignItems="center"
-            >
-                <CreateFirstList />
-            </Box>
-        );
-    }
-
-    getTabs() {
+    render() {
+        console.log("Render tabs");
         const tabs = this.state.lists.map((list: ApiList) => {
             return <Tab key={list.id} label={list.name} />
         });
-        console.log("Tabs");
-        console.log(tabs);
-        console.log("Lists");
-        console.log(this.state.lists);
         return (
             <Box
                 display="flex"
@@ -75,19 +59,11 @@ export default class MainMenu extends React.Component {
                         allowScrollButtonsMobile
                         aria-label="scrollable force tabs example"
                     >
-                        <Tab onClick={() => { console.log("Item One") }} label="Item One" />
                         {tabs}
+                        <CreateList />
                     </Tabs>
                 </Box>
             </Box>
         );
-
-    }
-
-    render() {
-        if (this.state.lists.length === 0) {
-            return this.getButtonFirstList();
-        }
-        return this.getTabs();
     }
 }

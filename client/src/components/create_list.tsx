@@ -4,11 +4,12 @@ import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import ApiResponse from '../models/api_response';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
-export default class CreateFirstList extends React.Component {
+
+export default class CreateList extends React.Component {
 
     state = {
         open: false,
@@ -25,8 +26,8 @@ export default class CreateFirstList extends React.Component {
     render() {
         return (
             <React.Fragment>
-                <Button variant="outlined" onClick={this.handleOpen}>
-                    Create First List
+                <Button onClick={this.handleOpen}>
+                    <AddCircleOutlineIcon />
                 </Button>
                 <Dialog
                     open={this.state.open}
@@ -57,12 +58,8 @@ export default class CreateFirstList extends React.Component {
                         },
                     }}
                 >
-                    <DialogTitle>Create First List</DialogTitle>
+                    <DialogTitle>Create list</DialogTitle>
                     <DialogContent>
-                        <DialogContentText>
-                            To subscribe to this website, please enter your email address here. We
-                            will send updates occasionally.
-                        </DialogContentText>
                         <TextField
                             autoFocus
                             required
