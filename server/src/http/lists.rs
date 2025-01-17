@@ -24,12 +24,7 @@ async fn create(
         Some(name) => name,
         None => return Response::create(StatusCode::BAD_REQUEST, "Name is required", Data::None),
     };
-    let position = match body["position"].as_i64() {
-        Some(position) => position,
-        None => {
-            return Response::create(StatusCode::BAD_REQUEST, "Position is required", Data::None)
-        }
-    };
+    let position = body["position"].as_i64().unwrap_or_default();
     List::create(&app_state.pool, name, position)
         .await
         .map(|list| Response::create(StatusCode::CREATED, "Created", Data::One(list.to_json())))

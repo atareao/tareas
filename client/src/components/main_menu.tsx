@@ -48,9 +48,13 @@ export default class MainMenu extends React.Component {
     }
 
     getTabs() {
-        const tabs = this.state.lists.map((list: ApiList, index) => {
-            return <Tab key={index} label={list.name} />
+        const tabs = this.state.lists.map((list: ApiList) => {
+            return <Tab key={list.id} label={list.name} />
         });
+        console.log("Tabs");
+        console.log(tabs);
+        console.log("Lists");
+        console.log(this.state.lists);
         return (
             <Box
                 display="flex"

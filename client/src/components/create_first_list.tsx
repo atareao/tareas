@@ -1,21 +1,12 @@
 import * as React from 'react';
-import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
-import Modal from '@mui/material/Modal';
-
-const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    bgcolor: 'background.paper',
-    border: '2px solid #000',
-    boxShadow: 24,
-    p: 4,
-};
-
+import TextField from '@mui/material/TextField';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import ApiResponse from '../models/api_response';
 
 export default class CreateFirstList extends React.Component {
 
@@ -33,31 +24,63 @@ export default class CreateFirstList extends React.Component {
 
     render() {
         return (
-            <div>
-                <Button
-                    onClick={this.handleOpen}
-                    variant="contained"
-                    color="primary"
-                    size="small"
-                >
+            <React.Fragment>
+                <Button variant="outlined" onClick={this.handleOpen}>
                     Create First List
                 </Button>
-                <Modal
+                <Dialog
                     open={this.state.open}
                     onClose={this.handleClose}
-                    aria-labelledby="modal-modal-title"
-                    aria-describedby="modal-modal-description"
+                    PaperProps={{
+                        component: 'form',
+                        onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
+                            event.preventDefault();
+                            const formData = new FormData(event.currentTarget);
+                            const formJson = Object.fromEntries((formData as any).entries());
+                            fetch('/api/v1/lists', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify(formJson),
+                            })
+                            .then((data: ApiResponse) => {
+                                console.log(data);
+                                if(data.status === 200){
+                                    console.log(data.data);
+                                }
+                            });
+                            console.log(formJson);
+                            const name = formJson.name;
+                            console.log(name);
+                            this.handleClose();
+                        },
+                    }}
                 >
-                    <Box sx={style}>
-                        <Typography id="modal-modal-title" variant="h6" component="h2">
-                            Text in a modal
-                        </Typography>
-                        <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-                            Duis mollis, est non commodo luctus, nisi erat porttitor ligula.
-                        </Typography>
-                    </Box>
-                </Modal>
-            </div>
+                    <DialogTitle>Create First List</DialogTitle>
+                    <DialogContent>
+                        <DialogContentText>
+                            To subscribe to this website, please enter your email address here. We
+                            will send updates occasionally.
+                        </DialogContentText>
+                        <TextField
+                            autoFocus
+                            required
+                            margin="dense"
+                            id="name"
+                            name="name"
+                            label="List name"
+                            type="text"
+                            fullWidth
+                            variant="standard"
+                        />
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={this.handleClose}>Cancel</Button>
+                        <Button type="submit">Create</Button>
+                    </DialogActions>
+                </Dialog>
+            </React.Fragment>
         );
     }
 }
