@@ -52,7 +52,7 @@ impl Task {
             .await
     }
 
-    pub async fn read(pool: &SqlitePool, id: i32) -> Result<Self, Error>{
+    pub async fn read(pool: &SqlitePool, id: i64) -> Result<Self, Error>{
         let sql = "SELECT * FROM tasks WHERE id = $1";
         query(sql)
             .bind(id)
@@ -90,7 +90,7 @@ impl Task {
            .await
     }
 
-    pub async fn update(pool: &SqlitePool, id: i32, name: &str, position: i64, done: bool) -> Result<Self, Error>{
+    pub async fn update(pool: &SqlitePool, id: i64, name: &str, position: i64, done: bool) -> Result<Self, Error>{
         let sql = "UPDATE tasks SET name = $1, position =$2, done = $3, updated_at = $4 WHERE id = $5 RETURNING *";
         query(sql)
             .bind(name)
@@ -103,7 +103,7 @@ impl Task {
             .await
     }
 
-    pub async fn delete(pool: &SqlitePool, id: i32) -> Result<Self, Error>{
+    pub async fn delete(pool: &SqlitePool, id: i64) -> Result<Self, Error>{
         let sql = "DELETE FROM tasks WHERE id = $1 RETURNING *";
         query(sql)
             .bind(id)

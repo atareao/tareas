@@ -6,7 +6,7 @@ use sqlx::{
     sqlite::SqlitePoolOptions,
 };
 
-use axum::{debug_handler, routing::get, Router};
+use axum::Router;
 use std::sync::Arc;
 use std::{env::var, path::Path, str::FromStr};
 use tower_http::services::{ServeDir, ServeFile};
@@ -14,8 +14,9 @@ use tracing::{debug, info};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 use crate::{
     http::{
-        list_router,
         health_router,
+        list_router,
+        task_router,
     },
     models::{
         Error,
@@ -67,6 +68,7 @@ async fn main() -> Result<(), Error> {
 
     let api_routes = Router::new()
         .nest("/lists", list_router())
+        .nest("/tasks", task_router())
         .with_state(Arc::new(AppState { pool }))
         .nest("/health", health_router());
 
