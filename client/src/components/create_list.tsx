@@ -7,9 +7,18 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import ApiResponse from '../models/api_response';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import ApiList from '../models/api_list';
 
+interface CreateListProps {
+    onCallback: Function;
+}
 
-export default class CreateList extends React.Component {
+export default class CreateList extends React.Component<CreateListProps, any> {
+
+    constructor(props: CreateListProps) {
+        super(props);
+        console.log(`props: ${props.onCallback}`);
+    }
 
     state = {
         open: false,
@@ -45,10 +54,16 @@ export default class CreateList extends React.Component {
                                 },
                                 body: JSON.stringify(formJson),
                             })
-                            .then((data: ApiResponse) => {
+                            .then(response => response.json())
+                            .then((data: ApiResponse<ApiList>) => {
                                 console.log(data);
-                                if(data.status === 200){
-                                    console.log(data.data);
+                                if(data.status === 201){
+                                    if (data.data !== null) {
+                                        console.log(data.data);
+                                    }
+                                    console.log("actualizar");
+                                    this.props.onCallback();
+                                    console.log("actualizado");
                                 }
                             });
                             console.log(formJson);

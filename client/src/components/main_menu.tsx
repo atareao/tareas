@@ -16,15 +16,21 @@ export default class MainMenu extends React.Component {
     constructor(props: any) {
         super(props);
         this.state = { value: 0, lists: [] };
+        this.updateLists();
+    }
+
+    updateLists = () => {
+        console.log("Update lists");
         fetch('/api/v1/lists')
         .then((res) => {
             console.log(`Response: ${res.status}`);
             console.log(`Response: ${res}`);
             return res.json();
         })
-        .then((data: ApiResponse) => {
+        .then((data: ApiResponse<ApiList>) => {
             console.log(data);
             if(data.status === 200){
+                console.log(data.data);
                 this.setState({lists: data.data});
             }
         });
@@ -60,7 +66,11 @@ export default class MainMenu extends React.Component {
                         aria-label="scrollable force tabs example"
                     >
                         {tabs}
-                        <CreateList />
+                        <CreateList onCallback={() => {
+                            console.log("Update lists");
+                            this.updateLists();
+                            console.log("Finish update lists");
+                        }}/>
                     </Tabs>
                 </Box>
             </Box>

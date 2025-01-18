@@ -1,7 +1,5 @@
-import ApiList from './api_list';
-
-export default class Response {
+export default class Response<T> {
     status?: number;
     message?: string;
-    data?: ApiList | ApiList[] | null;
+    data?: T | T[] | null;
 }
