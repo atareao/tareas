@@ -25,6 +25,11 @@ export default class Tasks extends React.Component<TasksProps, any> {
         this.setState({ listId: props.listId}, this.updateList)
         this.updateList();
     }
+
+    useEffect() {
+        console.log(`${this.state} has changed`);
+    }
+
     updateList() {
         console.log("Update lists");
         fetch(`/api/v1/tasks/${this.state.listId}`)

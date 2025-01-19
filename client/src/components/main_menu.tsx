@@ -38,6 +38,7 @@ export default class MainMenu extends React.Component {
     }
 
     handleChange = (_event: React.SyntheticEvent, newValue: number) => {
+        console.log(`Change tab to ${newValue}`);
         this.setState({ value: newValue });
     }
 
