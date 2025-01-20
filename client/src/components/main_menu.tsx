@@ -10,15 +10,16 @@ import Tasks from './tasks'
 export default class MainMenu extends React.Component {
 
     state = {
-        value: 0,
+        listId: 0,
         lists: [],
     }
 
     constructor(props: any) {
         super(props);
-        this.state = { value: 0, lists: [] };
+        this.state = { listId: 0, lists: [] };
         this.updateLists();
     }
+
 
     updateLists = () => {
         console.log("Update lists");
@@ -28,18 +29,20 @@ export default class MainMenu extends React.Component {
                 console.log(`Response: ${res}`);
                 return res.json();
             })
-            .then((data: ApiResponse<ApiList>) => {
+            .then((data: ApiResponse<ApiList[]>) => {
                 console.log(data);
-                if (data.status === 200) {
+                if (data.status === 200 && data.data != null) {
                     console.log(data.data);
-                    this.setState({ lists: data.data });
+                    this.setState({
+                        lists: data.data
+                    });
                 }
             });
     }
 
     handleChange = (_event: React.SyntheticEvent, newValue: number) => {
         console.log(`Change tab to ${newValue}`);
-        this.setState({ value: newValue });
+        this.setState({ listId: newValue });
     }
 
     render() {
@@ -60,7 +63,7 @@ export default class MainMenu extends React.Component {
                         }}
                     >
                         <Tabs
-                            value={this.state.value}
+                            value={this.state.listId}
                             onChange={this.handleChange}
                             variant="scrollable"
                             scrollButtons
@@ -86,7 +89,7 @@ export default class MainMenu extends React.Component {
                             maxWidth: { xs: 320, sm: 480 },
                         }}
                     >
-                        <Tasks listId={this.state.value}/>
+                        <Tasks listId={this.state.listId}/>
                     </Box>
                 </Box>
             </Box>
