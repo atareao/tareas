@@ -25,19 +25,23 @@ async fn create(
     Path(list_id): Path<i64>,
     Json(body): Json<serde_json::Value>,
 ) -> impl IntoResponse {
+    debug!("{:?}", body);
     let name = match body["name"].as_str() {
         Some(name) => name,
         None => return Response::create(StatusCode::BAD_REQUEST, "Name is required", Data::None),
     };
     let position = body["position"].as_i64().unwrap_or_default();
-    Task::create(&app_state.pool, name, position, list_id)
-        .await
-        .map(|list| Response::create(StatusCode::CREATED, "Created", Data::One(list.to_json())))
-        .unwrap_or(Response::create(
+    match Task::create(&app_state.pool, name, position, list_id).await {
+        Ok(task) => Response::create(
+            StatusCode::CREATED, 
+            "Created",
+            Data::One(task.to_json())),
+        Err(e) => Response::create(
             StatusCode::INTERNAL_SERVER_ERROR,
-            "Can not create task",
+            e.to_string().as_str(),
             Data::None,
-        ))
+        ),
+    }
 }
 
 async fn read(

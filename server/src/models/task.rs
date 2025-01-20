@@ -2,6 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::{sqlite::{SqliteRow, SqlitePool}, Row, error::Error, query};
 use serde_json::Value;
+use tracing::debug;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Task {
@@ -40,7 +41,8 @@ impl Task {
     }
 
     pub async fn create(pool: &SqlitePool, name: &str, position: i64, list_id: i64) -> Result<Self, Error>{
-        let sql = "INSERT INTO tasks (list_id, name, done, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $5) RETURNING *";
+        debug!("create task name: {name}, position: {position}, list_id: {list_id}");
+        let sql = "INSERT INTO tasks (list_id, name, position, done, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $5) RETURNING *";
         query(sql)
             .bind(list_id)
             .bind(name)

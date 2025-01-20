@@ -7,19 +7,25 @@ import ApiList from '../models/api_list';
 import CreateList from './create_list';
 import Tasks from './tasks'
 
-export default class MainMenu extends React.Component {
+interface MainMenuState {
+    listId: number,
+    lists: ApiList[];
+}
 
-    state = {
-        listId: 0,
-        lists: [],
-    }
+
+export default class MainMenu extends React.Component<{}, MainMenuState> {
+
+    private tasks: React.RefObject<Tasks>;
 
     constructor(props: any) {
         super(props);
-        this.state = { listId: 0, lists: [] };
+        this.state = {
+            listId: 0,
+            lists: [],
+        };
+        this.tasks = React.createRef();
         this.updateLists();
     }
-
 
     updateLists = () => {
         console.log("Update lists");
@@ -33,9 +39,7 @@ export default class MainMenu extends React.Component {
                 console.log(data);
                 if (data.status === 200 && data.data != null) {
                     console.log(data.data);
-                    this.setState({
-                        lists: data.data
-                    });
+                    this.setState({ lists: data.data });
                 }
             });
     }
@@ -43,6 +47,8 @@ export default class MainMenu extends React.Component {
     handleChange = (_event: React.SyntheticEvent, newValue: number) => {
         console.log(`Change tab to ${newValue}`);
         this.setState({ listId: newValue });
+        this.tasks.current?.updateTasksList(newValue);
+        console.log(this.state);
     }
 
     render() {
@@ -89,7 +95,9 @@ export default class MainMenu extends React.Component {
                             maxWidth: { xs: 320, sm: 480 },
                         }}
                     >
-                        <Tasks listId={this.state.listId}/>
+                        <Tasks 
+                            ref={this.tasks}
+                            listId={this.state.listId}/>
                     </Box>
                 </Box>
             </Box>

@@ -2,17 +2,23 @@ import * as React from 'react';
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemText from '@mui/material/ListItemText';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import ApiResponse from '../models/api_response';
 import ApiTask from '../models/api_task';
+import CreateTask from './create_task';
+import CustomItem from './custom_item';
+
+interface TasksState {
+    listId: number,
+    tasks: ApiTask[],
+}
 
 interface TasksProps {
     listId: number,
 }
 
-export default class Tasks extends React.Component<TasksProps, any> {
+export default class Tasks extends React.Component<TasksProps, TasksState> {
+
+    private createTask: React.RefObject<CreateTask>;
 
     state = {
         listId: 0,
@@ -23,6 +29,7 @@ export default class Tasks extends React.Component<TasksProps, any> {
         super(props);
         console.log(`props: ${props.listId}`);
         this.setState({ listId: props.listId}, this.updateList)
+        this.createTask = React.createRef();
         this.updateList();
     }
 
@@ -31,7 +38,9 @@ export default class Tasks extends React.Component<TasksProps, any> {
     }
 
     updateTasksList(listId: number) {
+        console.log(`Update tasks list ${listId}`);
         this.setState({ listId: listId}, this.updateList)
+        this.createTask.current?.setState({ listId: listId });
     }
 
     updateList() {
@@ -42,9 +51,9 @@ export default class Tasks extends React.Component<TasksProps, any> {
                 console.log(`Response: ${res}`);
                 return res.json();
             })
-            .then((data: ApiResponse<ApiTask>) => {
+            .then((data: ApiResponse<ApiTask[]>) => {
                 console.log(data);
-                if (data.status === 200) {
+                if (data.status === 200 && data.data != null) {
                     console.log(data.data);
                     this.setState({ tasks: data.data });
                 }
@@ -52,23 +61,19 @@ export default class Tasks extends React.Component<TasksProps, any> {
     }
 
     render() {
+        const items = this.state.tasks.map((task: ApiTask) => {
+            return <CustomItem task={task} />
+        });
         return (
             <Box sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
                     <List>
-                        <ListItem disablePadding>
-                            <ListItemButton>
-                                <ListItemText primary="Trash" />
-                            </ListItemButton>
-                        </ListItem>
-                        <ListItem disablePadding>
-                            <ListItemButton component="a" href="#simple-list">
-                                <ListItemText primary="Spam" />
-                            </ListItemButton>
-                        </ListItem>
+                        {items}
                         <ListItem>
-                            <ListItemButton>
-                                <AddCircleOutlineIcon />
-                            </ListItemButton>
+                            <CreateTask
+                                ref={this.createTask}
+                                listId={this.state.listId} onCallback={() => {
+                                console.log("Done")
+                            }} />
                         </ListItem>
                     </List>
             </Box>
