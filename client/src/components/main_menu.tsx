@@ -44,9 +44,9 @@ export default class MainMenu extends React.Component<{}, MainMenuState> {
             });
     }
 
-    getSelectedListId(): number | null {
-        if (this.state.lists.length > this.state.selectedTab) {
-            const list = this.state.lists[this.state.selectedTab];
+    getSelectedListId(tabNumber: number): number | null {
+        if (this.state.lists.length > tabNumber) {
+            const list = this.state.lists[tabNumber];
             console.log(list);
             if (list != null && list.id != null){
                 console.log(`Selected list id: ${list.id}`);
@@ -59,9 +59,10 @@ export default class MainMenu extends React.Component<{}, MainMenuState> {
     handleChange = (_event: React.SyntheticEvent, newValue: number) => {
         console.log(`Change tab to ${newValue}`);
         this.setState({ selectedTab: newValue });
-        const selectedListId = this.getSelectedListId();
+        const selectedListId = this.getSelectedListId(newValue);
         if(selectedListId != null){
-            this.tasks.current?.updateTasksList(selectedListId);
+            console.log(`Update list ${selectedListId}`);
+            this.tasks.current?.updateList(selectedListId);
         }
         console.log(this.state);
     }
@@ -102,7 +103,7 @@ export default class MainMenu extends React.Component<{}, MainMenuState> {
                 </Box>
                 <Tasks
                     ref={this.tasks}
-                    listId={this.getSelectedListId()} />
+                    listId={this.getSelectedListId(this.state.selectedTab)} />
             </Box>
         );
     }

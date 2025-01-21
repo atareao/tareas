@@ -8,7 +8,6 @@ import CreateTask from './create_task';
 import CustomItem from './custom_item';
 
 interface TasksState {
-    listId: number | null,
     tasks: ApiTask[],
 }
 
@@ -20,32 +19,26 @@ export default class Tasks extends React.Component<TasksProps, TasksState> {
 
     private createTask: React.RefObject<CreateTask>;
 
+    private listId: number | null;
     state = {
-        listId: 0,
         tasks: [],
     }
 
     constructor(props: TasksProps) {
         super(props);
         console.log(`props: ${props.listId}`);
-        this.setState({ listId: props.listId }, this.updateList)
+        this.listId = props.listId;
         this.createTask = React.createRef();
-        this.updateList();
     }
 
     useEffect() {
         console.log(`${this.state} has changed`);
     }
 
-    updateTasksList(listId: number) {
-        console.log(`Update tasks list ${listId}`);
-        this.setState({ listId: listId }, this.updateList)
-        this.createTask.current?.setState({ listId: listId });
-    }
-
-    updateList() {
+    updateList(listId: number) {
         console.log("Update lists");
-        fetch(`/api/v1/tasks/${this.state.listId}`)
+        console.log(`/api/v1/tasks/${listId}`);
+        fetch(`/api/v1/tasks/${listId}`)
             .then((res) => {
                 console.log(`Response: ${res.status}`);
                 console.log(`Response: ${res}`);
@@ -54,9 +47,11 @@ export default class Tasks extends React.Component<TasksProps, TasksState> {
             .then((data: ApiResponse<ApiTask[]>) => {
                 console.log(data);
                 if (data.status === 200 && data.data != null) {
-                    console.log(data.data);
                     this.setState({ tasks: data.data });
+                }else{
+                    this.setState({ tasks: [] });
                 }
+                console.log(this.state.tasks);
             });
     }
 
@@ -81,7 +76,7 @@ export default class Tasks extends React.Component<TasksProps, TasksState> {
                             <ListItem>
                                 <CreateTask
                                     ref={this.createTask}
-                                    listId={this.state.listId} onCallback={() => {
+                                    listId={this.listId} onCallback={() => {
                                         console.log("Done")
                                     }} />
                             </ListItem>

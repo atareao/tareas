@@ -10,7 +10,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import ApiList from '../models/api_list';
 
 interface CreateTaskProps {
-    listId: number;
+    listId: number | null;
     onCallback: Function;
 }
 interface CreateTaskState {
@@ -52,6 +52,7 @@ export default class CreateTask extends React.Component<CreateTaskProps, CreateT
                             event.preventDefault();
                             const formData = new FormData(event.currentTarget);
                             const formJson = Object.fromEntries((formData as any).entries());
+                            console.log(`/api/v1/tasks/${this.state.listId}`);
                             fetch(`/api/v1/tasks/${this.state.listId}`, {
                                 method: 'POST',
                                 headers: {
