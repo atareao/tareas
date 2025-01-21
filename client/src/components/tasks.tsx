@@ -8,12 +8,12 @@ import CreateTask from './create_task';
 import CustomItem from './custom_item';
 
 interface TasksState {
-    listId: number,
+    listId: number | null,
     tasks: ApiTask[],
 }
 
 interface TasksProps {
-    listId: number,
+    listId: number | null,
 }
 
 export default class Tasks extends React.Component<TasksProps, TasksState> {
@@ -28,7 +28,7 @@ export default class Tasks extends React.Component<TasksProps, TasksState> {
     constructor(props: TasksProps) {
         super(props);
         console.log(`props: ${props.listId}`);
-        this.setState({ listId: props.listId}, this.updateList)
+        this.setState({ listId: props.listId }, this.updateList)
         this.createTask = React.createRef();
         this.updateList();
     }
@@ -39,7 +39,7 @@ export default class Tasks extends React.Component<TasksProps, TasksState> {
 
     updateTasksList(listId: number) {
         console.log(`Update tasks list ${listId}`);
-        this.setState({ listId: listId}, this.updateList)
+        this.setState({ listId: listId }, this.updateList)
         this.createTask.current?.setState({ listId: listId });
     }
 
@@ -65,17 +65,29 @@ export default class Tasks extends React.Component<TasksProps, TasksState> {
             return <CustomItem task={task} />
         });
         return (
-            <Box sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
-                    <List>
-                        {items}
-                        <ListItem>
-                            <CreateTask
-                                ref={this.createTask}
-                                listId={this.state.listId} onCallback={() => {
-                                console.log("Done")
-                            }} />
-                        </ListItem>
-                    </List>
+            <Box
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+            >
+                <Box
+                    sx={{
+                        maxWidth: { xs: 320, sm: 480 },
+                    }}
+                >
+                    <Box sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
+                        <List>
+                            {items}
+                            <ListItem>
+                                <CreateTask
+                                    ref={this.createTask}
+                                    listId={this.state.listId} onCallback={() => {
+                                        console.log("Done")
+                                    }} />
+                            </ListItem>
+                        </List>
+                    </Box>
+                </Box>
             </Box>
         );
     }

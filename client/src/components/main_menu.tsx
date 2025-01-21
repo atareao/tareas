@@ -8,7 +8,7 @@ import CreateList from './create_list';
 import Tasks from './tasks'
 
 interface MainMenuState {
-    listId: number,
+    selectedTab: number,
     lists: ApiList[];
 }
 
@@ -17,10 +17,10 @@ export default class MainMenu extends React.Component<{}, MainMenuState> {
 
     private tasks: React.RefObject<Tasks>;
 
-    constructor(props: any) {
-        super(props);
+    constructor() {
+        super({});
         this.state = {
-            listId: 0,
+            selectedTab: 0,
             lists: [],
         };
         this.tasks = React.createRef();
@@ -44,10 +44,25 @@ export default class MainMenu extends React.Component<{}, MainMenuState> {
             });
     }
 
+    getSelectedListId(): number | null {
+        if (this.state.lists.length > this.state.selectedTab) {
+            const list = this.state.lists[this.state.selectedTab];
+            console.log(list);
+            if (list != null && list.id != null){
+                console.log(`Selected list id: ${list.id}`);
+                return list.id;
+            }
+        }
+        return null;
+    }
+
     handleChange = (_event: React.SyntheticEvent, newValue: number) => {
         console.log(`Change tab to ${newValue}`);
-        this.setState({ listId: newValue });
-        this.tasks.current?.updateTasksList(newValue);
+        this.setState({ selectedTab: newValue });
+        const selectedListId = this.getSelectedListId();
+        if(selectedListId != null){
+            this.tasks.current?.updateTasksList(selectedListId);
+        }
         console.log(this.state);
     }
 
@@ -69,7 +84,7 @@ export default class MainMenu extends React.Component<{}, MainMenuState> {
                         }}
                     >
                         <Tabs
-                            value={this.state.listId}
+                            value={this.state.selectedTab}
                             onChange={this.handleChange}
                             variant="scrollable"
                             scrollButtons
@@ -85,21 +100,9 @@ export default class MainMenu extends React.Component<{}, MainMenuState> {
                         </Tabs>
                     </Box>
                 </Box>
-                <Box
-                    display="flex"
-                    justifyContent="center"
-                    alignItems="center"
-                >
-                    <Box
-                        sx={{
-                            maxWidth: { xs: 320, sm: 480 },
-                        }}
-                    >
-                        <Tasks 
-                            ref={this.tasks}
-                            listId={this.state.listId}/>
-                    </Box>
-                </Box>
+                <Tasks
+                    ref={this.tasks}
+                    listId={this.getSelectedListId()} />
             </Box>
         );
     }

@@ -6,7 +6,7 @@ use axum::{
     routing, Json, Router,
 };
 use std::sync::Arc;
-use tracing::debug;
+use tracing::{debug, error};
 
 pub fn task_router() -> Router<Arc<AppState>> {
     Router::new()
@@ -36,11 +36,14 @@ async fn create(
             StatusCode::CREATED, 
             "Created",
             Data::One(task.to_json())),
-        Err(e) => Response::create(
-            StatusCode::INTERNAL_SERVER_ERROR,
-            e.to_string().as_str(),
-            Data::None,
-        ),
+        Err(e) => {
+            error!("Error creating task: {:?}", e);
+            Response::create(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                e.to_string().as_str(),
+                Data::None,
+            )
+        },
     }
 }
 
