@@ -8,6 +8,7 @@ import CreateTask from './create_task';
 import CustomItem from './custom_item';
 
 interface TasksState {
+    listId: number | null,
     tasks: ApiTask[],
 }
 
@@ -19,15 +20,14 @@ export default class Tasks extends React.Component<TasksProps, TasksState> {
 
     private createTask: React.RefObject<CreateTask>;
 
-    private listId: number | null;
     state = {
+        listId: this.props.listId,
         tasks: [],
     }
 
     constructor(props: TasksProps) {
         super(props);
         console.log(`props: ${props.listId}`);
-        this.listId = props.listId;
         this.createTask = React.createRef();
     }
 
@@ -35,7 +35,7 @@ export default class Tasks extends React.Component<TasksProps, TasksState> {
         console.log(`${this.state} has changed`);
     }
 
-    updateList(listId: number) {
+    async updateList(listId: number) {
         console.log("Update lists");
         console.log(`/api/v1/tasks/${listId}`);
         fetch(`/api/v1/tasks/${listId}`)
@@ -47,9 +47,9 @@ export default class Tasks extends React.Component<TasksProps, TasksState> {
             .then((data: ApiResponse<ApiTask[]>) => {
                 console.log(data);
                 if (data.status === 200 && data.data != null) {
-                    this.setState({ tasks: data.data });
+                    this.setState({listId: listId, tasks: data.data});
                 }else{
-                    this.setState({ tasks: [] });
+                    this.setState({ listId: 0, tasks: [] });
                 }
                 console.log(this.state.tasks);
             });
@@ -76,7 +76,7 @@ export default class Tasks extends React.Component<TasksProps, TasksState> {
                             <ListItem>
                                 <CreateTask
                                     ref={this.createTask}
-                                    listId={this.listId} onCallback={() => {
+                                    listId={this.state.listId} onCallback={() => {
                                         console.log("Done")
                                     }} />
                             </ListItem>
