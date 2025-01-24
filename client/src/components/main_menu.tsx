@@ -62,7 +62,7 @@ export default class MainMenu extends React.Component<{}, MainMenuState> {
         const selectedListId = this.getSelectedListId(newValue);
         if(selectedListId != null){
             console.log(`Update list ${selectedListId}`);
-            this.tasks.current?.updateList(selectedListId);
+            this.tasks.current?.updateTasks(selectedListId);
         }
         console.log(this.state);
     }

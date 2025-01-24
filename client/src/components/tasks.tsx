@@ -20,22 +20,22 @@ export default class Tasks extends React.Component<TasksProps, TasksState> {
 
     private createTask: React.RefObject<CreateTask>;
 
-    state = {
-        listId: this.props.listId,
-        tasks: [],
-    }
 
     constructor(props: TasksProps) {
         super(props);
         console.log(`props: ${props.listId}`);
         this.createTask = React.createRef();
+        this.state = {
+            listId: null,
+            tasks: [],
+        }
     }
 
     useEffect() {
         console.log(`${this.state} has changed`);
     }
 
-    async updateList(listId: number) {
+    updateTasks = (listId: number) => {
         console.log("Update lists");
         console.log(`/api/v1/tasks/${listId}`);
         fetch(`/api/v1/tasks/${listId}`)
