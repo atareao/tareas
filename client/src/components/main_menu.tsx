@@ -27,13 +27,13 @@ export default class MainMenu extends React.Component<{}, MainMenuState> {
         this.updateLists();
     }
 
-    updateLists = () => {
+    updateLists = async () => {
         console.log("Update lists");
-        fetch('/api/v1/lists')
-            .then((res) => {
+        await fetch('/api/v1/lists')
+            .then(async (res) => {
                 console.log(`Response: ${res.status}`);
                 console.log(`Response: ${res}`);
-                return res.json();
+                return await res.json();
             })
             .then((data: ApiResponse<ApiList[]>) => {
                 console.log(data);
@@ -44,7 +44,7 @@ export default class MainMenu extends React.Component<{}, MainMenuState> {
             });
     }
 
-    getSelectedListId(tabNumber: number): number | null {
+    getSelectedListId = (tabNumber: number): number | null => {
         if (this.state.lists.length > tabNumber) {
             const list = this.state.lists[tabNumber];
             console.log(list);
@@ -62,12 +62,12 @@ export default class MainMenu extends React.Component<{}, MainMenuState> {
         const selectedListId = this.getSelectedListId(newValue);
         if(selectedListId != null){
             console.log(`Update list ${selectedListId}`);
-            this.tasks.current?.updateTasks(selectedListId);
+            this.tasks.current?.setSelectedList(selectedListId);
         }
         console.log(this.state);
     }
 
-    render() {
+    render = () => {
         console.log("Render tabs");
         const tabs = this.state.lists.map((list: ApiList) => {
             return <Tab key={list.id} label={list.name} />

@@ -5,7 +5,9 @@ import ListItem from '@mui/material/ListItem';
 import ApiResponse from '../models/api_response';
 import ApiTask from '../models/api_task';
 import CreateTask from './create_task';
-import CustomItem from './custom_item';
+//import CustomItem from './custom_item';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemText from '@mui/material/ListItemText';
 
 interface TasksState {
     listId: number | null,
@@ -14,6 +16,12 @@ interface TasksState {
 
 interface TasksProps {
     listId: number | null,
+}
+
+const replaceContent = (fromTasks: ApiTask[], toTasks: ApiTask[]): ApiTask[] => {
+    fromTasks.length = 0;
+    fromTasks.push(...toTasks);
+    return fromTasks;
 }
 
 export default class Tasks extends React.Component<TasksProps, TasksState> {
@@ -26,38 +34,69 @@ export default class Tasks extends React.Component<TasksProps, TasksState> {
         console.log(`props: ${props.listId}`);
         this.createTask = React.createRef();
         this.state = {
-            listId: null,
+            listId: props.listId,
             tasks: [],
         }
     }
 
-    useEffect() {
+    useEffect = () => {
         console.log(`${this.state} has changed`);
     }
 
-    updateTasks = (listId: number) => {
+    setSelectedList = async (listId: number) => {
+        await this.updateTasks(listId);
+    };
+
+    updateTasks = async (listId: number) => {
         console.log("Update lists");
         console.log(`/api/v1/tasks/${listId}`);
-        fetch(`/api/v1/tasks/${listId}`)
-            .then((res) => {
+        await fetch(`/api/v1/tasks/${listId}`)
+            .then(async (res) => {
                 console.log(`Response: ${res.status}`);
                 console.log(`Response: ${res}`);
-                return res.json();
+                return await res.json();
             })
             .then((data: ApiResponse<ApiTask[]>) => {
-                console.log(data);
-                if (data.status === 200 && data.data != null) {
-                    this.setState({listId: listId, tasks: data.data});
-                }else{
-                    this.setState({ listId: 0, tasks: [] });
+                console.log(data.data);
+                if(data.data != null){
+                    for(const item of data.data){
+                        console.log(`Item: ${item.name}`);
+                    }
+                    if (data.status === 200 && data.data != null) {
+                        console.log(this.state.tasks);
+                        this.setState({
+                            listId: listId,
+                            tasks: replaceContent(this.state.tasks, data.data),
+                        });
+                        console.log(this.state.tasks);
+                        console.log(`Tasks for ${listId}`);
+                        for(const task of data.data){
+                            console.log(`Task: ${task.id} - ${task.name}`);
+                        }
+                    }else{
+                        this.setState({ tasks: [] });
+                    }
                 }
-                console.log(this.state.tasks);
             });
     }
 
-    render() {
+    componentDidUpdate = async (props: TasksProps) => {
+        console.log(`Component did update ${props.listId} - ${this.state.listId}`);
+        return true;
+    }
+    render = () => {
+        console.log(`Going to render for ${this.state.listId}`);
         const items = this.state.tasks.map((task: ApiTask) => {
-            return <CustomItem task={task} />
+            console.log(`Task: ${task.id} - ${task.name}`);
+            //return <CustomItem task={task} />
+            return (
+                <ListItem disablePadding>
+                    <ListItemButton>
+                        <ListItemText primary={task.name}/>
+                    </ListItemButton>
+                </ListItem>
+                );
+
         });
         return (
             <Box
