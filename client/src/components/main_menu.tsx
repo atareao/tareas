@@ -35,16 +35,25 @@ export default class MainMenu extends React.Component<{}, MainMenuState> {
                 console.log(`Response: ${res}`);
                 return await res.json();
             })
-            .then((data: ApiResponse<ApiList[]>) => {
+            .then( async (data: ApiResponse<ApiList[]>) => {
                 console.log(data);
                 if (data.status === 200 && data.data != null) {
                     console.log(data.data);
                     this.setState({ lists: data.data });
+                    if(data.data.length > 0){
+                        const list = data.data[0];
+                        if(list != null && list.id != null){
+                            console.log(`Selected list id for updateLists: ${list}`);
+                            console.log(`Update list ${list.id}`);
+                            await this.tasks.current?.setSelectedList(list.id);
+                        }
+                    }
                 }
             });
     }
 
     getSelectedListId = (tabNumber: number): number | null => {
+        console.log(`Get selected list id for tab ${tabNumber}`);
         if (this.state.lists.length > tabNumber) {
             const list = this.state.lists[tabNumber];
             console.log(list);

@@ -29,6 +29,10 @@ export default class CreateTask extends React.Component<CreateTaskProps, CreateT
         }
     }
 
+    setListId = (listId: number) => {
+        this.setState({ listId: listId });
+    }
+
     handleOpen = () => {
         this.setState({ open: true });
     }

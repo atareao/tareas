@@ -50,6 +50,7 @@ export default class Tasks extends React.Component<TasksProps, TasksState> {
     updateTasks = async (listId: number) => {
         console.log("Update lists");
         console.log(`/api/v1/tasks/${listId}`);
+        this.createTask.current?.setListId(listId);
         await fetch(`/api/v1/tasks/${listId}`)
             .then(async (res) => {
                 console.log(`Response: ${res.status}`);
