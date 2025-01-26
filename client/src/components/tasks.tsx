@@ -5,7 +5,7 @@ import ListItem from '@mui/material/ListItem';
 import ApiResponse from '../models/api_response';
 import ApiTask from '../models/api_task';
 import CreateTask from './create_task';
-//import CustomItem from './custom_item';
+import Checkbox from '@mui/material/Checkbox';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 
@@ -89,15 +89,14 @@ export default class Tasks extends React.Component<TasksProps, TasksState> {
         console.log(`Going to render for ${this.state.listId}`);
         const items = this.state.tasks.map((task: ApiTask) => {
             console.log(`Task: ${task.id} - ${task.name}`);
-            //return <CustomItem task={task} />
             return (
                 <ListItem disablePadding>
                     <ListItemButton>
+                    <Checkbox  />
                         <ListItemText primary={task.name}/>
                     </ListItemButton>
                 </ListItem>
                 );
-
         });
         return (
             <Box
