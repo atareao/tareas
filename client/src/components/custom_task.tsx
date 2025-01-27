@@ -20,13 +20,17 @@ export default class CustomTask extends React.Component<CustomItemProps, CustomT
         this.state = {
             task: this.props.task,
         }
+        console.log(`Constructor for task: ${this.state.task.name}`);
+        this.setState({ task: this.props.task });
     }
 
     updateTask = (task: ApiTask) => {
+        console.log(`Updating task: ${task}`);
         this.setState({ task: task });
     };
 
     render = () => {
+        console.log(`Rendering task: ${this.state.task.name}`)
         const checkBox = this.state.task.done ? <CheckBox checked /> : <CheckBox />;
         return (
             <>

@@ -5,9 +5,12 @@ import ListItem from '@mui/material/ListItem';
 import ApiResponse from '../models/api_response';
 import ApiTask from '../models/api_task';
 import CreateTask from './create_task';
+import CustomTask from './custom_task';
+/*
 import Checkbox from '@mui/material/Checkbox';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
+*/
 
 interface TasksState {
     listId: number | null,
@@ -87,8 +90,13 @@ export default class Tasks extends React.Component<TasksProps, TasksState> {
     }
     render = () => {
         console.log(`Going to render for ${this.state.listId}`);
-        const items = this.state.tasks.map((task: ApiTask) => {
+        const tasksForList = this.state.tasks.map((task: ApiTask) => {
             console.log(`Task: ${task.id} - ${task.name}`);
+            return (
+                <CustomTask
+                task={task} />
+            );
+            /*
             return (
                 <ListItem disablePadding>
                     <ListItemButton>
@@ -97,7 +105,9 @@ export default class Tasks extends React.Component<TasksProps, TasksState> {
                     </ListItemButton>
                 </ListItem>
                 );
+                */
         });
+        console.log(`Tasks for list: ${tasksForList}`);
         return (
             <Box
                 display="flex"
@@ -111,7 +121,14 @@ export default class Tasks extends React.Component<TasksProps, TasksState> {
                 >
                     <Box sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
                         <List>
-                            {items}
+                            {this.state.tasks.map((task: ApiTask) => {
+                                console.log(`Task: ${task.id} - ${task.name}`);
+                                return (
+                                    <CustomTask
+                                    task={task}
+                                    />
+                                );
+                            })};
                             <ListItem>
                                 <CreateTask
                                     ref={this.createTask}
