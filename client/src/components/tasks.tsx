@@ -51,6 +51,7 @@ export default class Tasks extends React.Component<TasksProps, TasksState> {
     };
 
     updateTasks = async (listId: number) => {
+        console.log("======================");
         console.log("Update lists");
         console.log(`/api/v1/tasks/${listId}`);
         this.createTask.current?.setListId(listId);
@@ -83,12 +84,22 @@ export default class Tasks extends React.Component<TasksProps, TasksState> {
                 }
             });
     }
+    componentDidMount = async () => {
+        console.log(`Component did mount ${this.state.listId}`);
+        return true;
+    }
 
     componentDidUpdate = async (props: TasksProps) => {
         console.log(`Component did update ${props.listId} - ${this.state.listId}`);
         return true;
     }
+    shouldComponentUpdate = (props: any) => {
+        console.log(`shouldComponentUpdate ${props}`);
+        return true;
+    }
+
     render = () => {
+            /*
         console.log(`Going to render for ${this.state.listId}`);
         const tasksForList = this.state.tasks.map((task: ApiTask) => {
             console.log(`Task: ${task.id} - ${task.name}`);
@@ -96,7 +107,6 @@ export default class Tasks extends React.Component<TasksProps, TasksState> {
                 <CustomTask
                 task={task} />
             );
-            /*
             return (
                 <ListItem disablePadding>
                     <ListItemButton>
@@ -105,9 +115,10 @@ export default class Tasks extends React.Component<TasksProps, TasksState> {
                     </ListItemButton>
                 </ListItem>
                 );
-                */
         });
-        console.log(`Tasks for list: ${tasksForList}`);
+        */
+        //console.log(`Tasks for list: ${tasksForList}`);
+        console.log(`Render list ${this.state.listId}`);
         return (
             <Box
                 display="flex"
@@ -123,11 +134,17 @@ export default class Tasks extends React.Component<TasksProps, TasksState> {
                         <List>
                             {this.state.tasks.map((task: ApiTask) => {
                                 console.log(`Task: ${task.id} - ${task.name}`);
-                                return (
-                                    <CustomTask
-                                    task={task}
-                                    />
-                                );
+                                if(task.id != null && task.name != null && task.done != null){
+                                    return (
+                                        <CustomTask
+                                        id={task.id}
+                                        name={task.name}
+                                        done={task.done}
+                                        />
+                                    );
+                                }else{
+                                    return <></>;
+                                }
                             })};
                             <ListItem>
                                 <CreateTask

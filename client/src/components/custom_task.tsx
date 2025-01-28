@@ -1,43 +1,41 @@
 import * as React from 'react';
-import ApiTask from '../models/api_task';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import CheckBox from '@mui/material/Checkbox';
 
-interface CustomTaskState {
-    task: ApiTask,
+interface CustomTaskProps {
+    id: number,
+    name: string,
+    done: boolean,
 }
 
-interface CustomItemProps {
-    task: ApiTask,
-}
+export default class CustomTask extends React.Component<CustomTaskProps, CustomTaskProps> {
 
-export default class CustomTask extends React.Component<CustomItemProps, CustomTaskState> {
-
-    constructor(props: CustomItemProps) {
+    constructor(props: CustomTaskProps) {
         super(props);
         this.state = {
-            task: this.props.task,
+            id: props.id,
+            name: props.name,
+            done: props.done,
         }
-        console.log(`Constructor for task: ${this.state.task.name}`);
-        this.setState({ task: this.props.task });
+        console.log(`Constructor for task: ${this.state.name}`);
+        this.setState({
+            id: this.props.id,
+            name: this.props.name,
+            done: this.props.done,
+        });
     }
 
-    updateTask = (task: ApiTask) => {
-        console.log(`Updating task: ${task}`);
-        this.setState({ task: task });
-    };
-
     render = () => {
-        console.log(`Rendering task: ${this.state.task.name}`)
-        const checkBox = this.state.task.done ? <CheckBox checked /> : <CheckBox />;
+        console.log(`Rendering task: ${this.state.name}`)
+        const checkBox = this.state.done ? <CheckBox checked /> : <CheckBox />;
         return (
             <>
                 <ListItem disablePadding>
                     <ListItemButton>
                         {checkBox}
-                        <ListItemText primary={this.state.task.name}/>
+                        <ListItemText primary={this.state.name}/>
                     </ListItemButton>
                 </ListItem>
             </>
