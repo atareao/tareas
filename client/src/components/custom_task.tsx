@@ -3,11 +3,10 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import CheckBox from '@mui/material/Checkbox';
+import ApiTask from '../models/api_task';
 
 interface CustomTaskProps {
-    id: number,
-    name: string,
-    done: boolean,
+    task: ApiTask,
 }
 
 export default class CustomTask extends React.Component<CustomTaskProps, CustomTaskProps> {
@@ -15,27 +14,23 @@ export default class CustomTask extends React.Component<CustomTaskProps, CustomT
     constructor(props: CustomTaskProps) {
         super(props);
         this.state = {
-            id: props.id,
-            name: props.name,
-            done: props.done,
+            task: props.task,
         }
-        console.log(`Constructor for task: ${this.state.name}`);
+        console.log(`Constructor for task: ${this.props.task.name}`);
         this.setState({
-            id: this.props.id,
-            name: this.props.name,
-            done: this.props.done,
+            task: props.task,
         });
     }
 
     render = () => {
-        console.log(`Rendering task: ${this.state.name}`)
-        const checkBox = this.state.done ? <CheckBox checked /> : <CheckBox />;
+        console.log(`Rendering task: ${this.state.task.name}`)
+        const checkBox = this.state.task.done ? <CheckBox checked /> : <CheckBox />;
         return (
             <>
                 <ListItem disablePadding>
                     <ListItemButton>
                         {checkBox}
-                        <ListItemText primary={this.state.name}/>
+                        <ListItemText primary={this.state.task.name}/>
                     </ListItemButton>
                 </ListItem>
             </>

@@ -6,11 +6,6 @@ import ApiResponse from '../models/api_response';
 import ApiTask from '../models/api_task';
 import CreateTask from './create_task';
 import CustomTask from './custom_task';
-/*
-import Checkbox from '@mui/material/Checkbox';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemText from '@mui/material/ListItemText';
-*/
 
 interface TasksState {
     listId: number | null,
@@ -97,27 +92,14 @@ export default class Tasks extends React.Component<TasksProps, TasksState> {
         console.log(`shouldComponentUpdate ${props}`);
         return true;
     }
+    forceRender = () => {
+        console.log(`Force render ${this.state.listId}`);
+        if(this.state.listId != null){
+            this.setSelectedList(this.state.listId);
+        }
+    }
 
     render = () => {
-            /*
-        console.log(`Going to render for ${this.state.listId}`);
-        const tasksForList = this.state.tasks.map((task: ApiTask) => {
-            console.log(`Task: ${task.id} - ${task.name}`);
-            return (
-                <CustomTask
-                task={task} />
-            );
-            return (
-                <ListItem disablePadding>
-                    <ListItemButton>
-                    <Checkbox  />
-                        <ListItemText primary={task.name}/>
-                    </ListItemButton>
-                </ListItem>
-                );
-        });
-        */
-        //console.log(`Tasks for list: ${tasksForList}`);
         console.log(`Render list ${this.state.listId}`);
         return (
             <Box
@@ -137,20 +119,18 @@ export default class Tasks extends React.Component<TasksProps, TasksState> {
                                 if(task.id != null && task.name != null && task.done != null){
                                     return (
                                         <CustomTask
-                                        id={task.id}
-                                        name={task.name}
-                                        done={task.done}
+                                            key={task.id}
+                                            task={task}
                                         />
-                                    );
-                                }else{
-                                    return <></>;
+                                    )
                                 }
-                            })};
+                            })}
                             <ListItem>
                                 <CreateTask
                                     ref={this.createTask}
                                     listId={this.state.listId} onCallback={() => {
                                         console.log("Done")
+                                        this.forceRender();
                                     }} />
                             </ListItem>
                         </List>
