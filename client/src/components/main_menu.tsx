@@ -32,7 +32,7 @@ export default class MainMenu extends React.Component<{}, MainMenuState> {
         await fetch('/api/v1/lists')
             .then(async (res) => {
                 console.log(`Response: ${res.status}`);
-                console.log(`Response: ${res}`);
+                console.log(`Response: ${JSON.stringify(res)}`);
                 return await res.json();
             })
             .then( async (data: ApiResponse<ApiList[]>) => {

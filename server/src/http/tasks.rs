@@ -14,9 +14,9 @@ pub fn task_router() -> Router<Arc<AppState>> {
             routing::post(create))
         .route("/{list_id}",
             routing::get(read))
-        .route("/list_id",
+        .route("/",
             routing::put(update))
-        .route("/{list_id}",
+        .route("/",
             routing::delete(delete))
 }
 

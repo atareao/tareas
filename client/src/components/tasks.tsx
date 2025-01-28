@@ -53,7 +53,7 @@ export default class Tasks extends React.Component<TasksProps, TasksState> {
         await fetch(`/api/v1/tasks/${listId}`)
             .then(async (res) => {
                 console.log(`Response: ${res.status}`);
-                console.log(`Response: ${res}`);
+                console.log(`Response: ${JSON.stringify(res)}`);
                 return await res.json();
             })
             .then((data: ApiResponse<ApiTask[]>) => {
