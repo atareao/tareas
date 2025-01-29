@@ -148,6 +148,7 @@ export default class CustomTask extends React.Component<CustomTaskProps, CustomT
         return (
             <>
                 <SwipeableListItem
+                    key={this.state.task.id}
                     leadingActions={this.leadingActions()}
                     trailingActions={trailingActions()}
                     onClick={() => console.log('list item clicked')}
