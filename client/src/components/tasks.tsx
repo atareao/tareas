@@ -1,7 +1,8 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
+//import List from '@mui/material/List';
+import { SwipeableList, SwipeableListItem } from 'react-swipeable-list';
+//import ListItem from '@mui/material/ListItem';
 import ApiResponse from '../models/api_response';
 import ApiTask from '../models/api_task';
 import CreateTask from './create_task';
@@ -113,7 +114,7 @@ export default class Tasks extends React.Component<TasksProps, TasksState> {
                     }}
                 >
                     <Box sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
-                        <List>
+                        <SwipeableList>
                             {this.state.tasks.map((task: ApiTask) => {
                                 console.log(`Task: ${task.id} - ${task.name}`);
                                 if(task.id != null && task.name != null && task.done != null){
@@ -125,15 +126,15 @@ export default class Tasks extends React.Component<TasksProps, TasksState> {
                                     )
                                 }
                             })}
-                            <ListItem>
+                            <SwipeableListItem>
                                 <CreateTask
                                     ref={this.createTask}
                                     listId={this.state.listId} onCallback={() => {
                                         console.log("Done")
                                         this.forceRender();
                                     }} />
-                            </ListItem>
-                        </List>
+                            </SwipeableListItem>
+                        </SwipeableList>
                     </Box>
                 </Box>
             </Box>
