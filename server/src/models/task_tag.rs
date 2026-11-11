@@ -105,3 +105,31 @@ impl TaskTag {
             .await
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::{tag::Tag, task::Task, test_utils::setup_pool, List};
+
+    /// `TaskTag::from_row` debe leer `tag_id` de la columna `tag_id`
+    /// (regresión: leía `"task_id"`).
+    #[tokio::test]
+    async fn from_row_maps_tag_id_from_tag_id_column() {
+        let pool = setup_pool().await;
+        let list = List::create(&pool, "inbox", 0).await.expect("list");
+        let task = Task::create(&pool, "una tarea", 0, list.id)
+            .await
+            .expect("task");
+        let tag = Tag::create(&pool, "urgente", 0).await.expect("tag");
+
+        let link = TaskTag::create(&pool, task.id, tag.id)
+            .await
+            .expect("create");
+        assert_eq!(i64::from(link.task_id), task.id);
+        assert_eq!(i64::from(link.tag_id), tag.id);
+
+        let read = TaskTag::read(&pool, link.id).await.expect("read");
+        assert_eq!(i64::from(read.task_id), task.id);
+        assert_eq!(i64::from(read.tag_id), tag.id);
+    }
+}

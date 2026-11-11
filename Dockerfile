@@ -5,7 +5,7 @@
 # y, con él, los `overrides` de seguridad del package.json).
 FROM node:22-slim AS client-builder
 WORKDIR /client-builder
-RUN npm install -g pnpm@12
+RUN npm install -g pnpm@12.15.0
 COPY ./client/package.json ./client/pnpm-lock.yaml ./client/pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 COPY ./client ./

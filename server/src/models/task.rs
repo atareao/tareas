@@ -5,7 +5,7 @@ use sqlx::{
     error::Error,
     query,
     sqlite::{SqlitePool, SqliteRow},
-    Row,
+    QueryBuilder, Row,
 };
 use tracing::debug;
 
@@ -92,24 +92,28 @@ impl Task {
         list_id: i64,
         tag_ids: &Vec<i64>,
     ) -> Result<Vec<Self>, Error> {
-        let ids = (2..tag_ids.len() + 1)
-            .collect::<Vec<usize>>()
-            .iter()
-            .map(|number| format!("${}", number))
-            .collect::<Vec<String>>()
-            .join(",");
-        let sql_string = format!(
+        // Sin etiquetas no hay intersección posible y generar `IN ()` produce
+        // SQL inválido: se devuelve vacío sin llegar a consultar.
+        if tag_ids.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        // Los placeholders de la lista `IN` se generan con `QueryBuilder`, que
+        // los emite como parámetros ligados ($2, $3, ...): nunca se interpola
+        // entrada del usuario en el SQL.
+        let mut qb = QueryBuilder::new(
             "SELECT * FROM tasks
                          INNER JOIN tasks_tags ON tasks.id = tasks_tags.task_id
-                         WHERE list_id = $1 AND tasks_tags.tag_id IN ({}) ORDER BY position",
-            ids
+                         WHERE list_id = ",
         );
-        let mut sql = query(&sql_string);
-        sql = sql.bind(list_id);
+        qb.push_bind(list_id);
+        qb.push(" AND tasks_tags.tag_id IN (");
+        let mut separated = qb.separated(", ");
         for tag_id in tag_ids {
-            sql = sql.bind(tag_id);
+            separated.push_bind(*tag_id);
         }
-        sql.map(Self::from_row).fetch_all(pool).await
+        separated.push_unseparated(") ORDER BY position");
+        qb.build().map(Self::from_row).fetch_all(pool).await
     }
 
     pub async fn update(
@@ -167,23 +171,107 @@ impl Task {
         name: &str,
         tag_ids: &Vec<i64>,
     ) -> Result<Vec<Self>, Error> {
-        let ids = (3..tag_ids.len() + 2)
-            .collect::<Vec<usize>>()
-            .iter()
-            .map(|number| format!("${}", number))
-            .collect::<Vec<String>>()
-            .join(",");
-        let sql_string = format!(
+        // Igual que en `read_all_filtered`: sin etiquetas se evita el `IN ()`
+        // inválido devolviendo vacío.
+        if tag_ids.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        // Placeholders ligados vía `QueryBuilder`.
+        let mut qb = QueryBuilder::new(
             "SELECT * FROM tasks
                          INNER JOIN tasks_tags ON tasks.id = tasks_tags.task_id
-                         WHERE list_id = $1 AND LOWER(name) LIKE  $2 AND tasks_tags.tag_id IN ({}) ORDER BY position",
-            ids
+                         WHERE list_id = ",
         );
-        let mut sql = query(&sql_string);
-        sql = sql.bind(list_id).bind(format!("%{}%", name.to_lowercase()));
+        qb.push_bind(list_id);
+        qb.push(" AND LOWER(name) LIKE ");
+        qb.push_bind(format!("%{}%", name.to_lowercase()));
+        qb.push(" AND tasks_tags.tag_id IN (");
+        let mut separated = qb.separated(", ");
         for tag_id in tag_ids {
-            sql = sql.bind(tag_id);
+            separated.push_bind(*tag_id);
         }
-        sql.map(Self::from_row).fetch_all(pool).await
+        separated.push_unseparated(") ORDER BY position");
+        qb.build().map(Self::from_row).fetch_all(pool).await
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::{tag::Tag, task_tag::TaskTag, test_utils::setup_pool, List};
+
+    /// `Task::create` + `Task::read_all` devuelven lo insertado.
+    #[tokio::test]
+    async fn create_and_read_all_roundtrip() {
+        let pool = setup_pool().await;
+        let list = List::create(&pool, "inbox", 0).await.expect("list");
+
+        let first = Task::create(&pool, "primera", 0, list.id)
+            .await
+            .expect("create first");
+        let second = Task::create(&pool, "segunda", 1, list.id)
+            .await
+            .expect("create second");
+
+        let all = Task::read_all(&pool, list.id).await.expect("read_all");
+        let ids: Vec<i64> = all.iter().map(|t| t.id).collect();
+        assert_eq!(ids, vec![first.id, second.id]);
+        assert_eq!(all[0].name, "primera");
+        assert_eq!(all[0].list_id, list.id);
+        assert!(!all[0].done);
+
+        let one = Task::read(&pool, second.id).await.expect("read");
+        assert_eq!(one.name, "segunda");
+    }
+
+    /// `search_filtered` con **dos** etiquetas genera `IN (?, ?)` válido y
+    /// devuelve las tareas etiquetadas (regresión de la generación de
+    /// placeholders con `QueryBuilder`).
+    #[tokio::test]
+    async fn search_filtered_with_two_tags() {
+        let pool = setup_pool().await;
+        let list = List::create(&pool, "inbox", 0).await.expect("list");
+        let trabajo = Tag::create(&pool, "trabajo", 0).await.expect("tag trabajo");
+        let casa = Tag::create(&pool, "casa", 1).await.expect("tag casa");
+
+        let a = Task::create(&pool, "comprar pan", 0, list.id)
+            .await
+            .expect("task a");
+        let b = Task::create(&pool, "comprar leche", 1, list.id)
+            .await
+            .expect("task b");
+        // Tarea sin etiquetas: no debe aparecer en el filtrado.
+        let c = Task::create(&pool, "comprar tornillos", 2, list.id)
+            .await
+            .expect("task c");
+
+        TaskTag::create(&pool, a.id, trabajo.id)
+            .await
+            .expect("a/trabajo");
+        TaskTag::create(&pool, b.id, casa.id).await.expect("b/casa");
+
+        let found = Task::search_filtered(&pool, list.id, "comprar", &vec![trabajo.id, casa.id])
+            .await
+            .expect("search_filtered");
+        let ids: Vec<i64> = found.iter().map(|t| t.id).collect();
+        assert_eq!(ids, vec![a.id, b.id]);
+        assert!(!ids.contains(&c.id));
+    }
+
+    /// `search_filtered` sin etiquetas no debe generar `IN ()` (SQL inválido):
+    /// devuelve vacío sin consultar.
+    #[tokio::test]
+    async fn search_filtered_with_empty_tags_returns_empty() {
+        let pool = setup_pool().await;
+        let list = List::create(&pool, "inbox", 0).await.expect("list");
+        let _ = Task::create(&pool, "comprar pan", 0, list.id)
+            .await
+            .expect("task");
+
+        let found = Task::search_filtered(&pool, list.id, "comprar", &vec![])
+            .await
+            .expect("search_filtered");
+        assert!(found.is_empty());
     }
 }

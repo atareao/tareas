@@ -104,3 +104,22 @@ impl List {
             .await
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::test_utils::setup_pool;
+
+    /// `List::create` debe persistir la `position` recibida.
+    #[tokio::test]
+    async fn create_persists_position() {
+        let pool = setup_pool().await;
+
+        let created = List::create(&pool, "inbox", 7).await.expect("create");
+        assert_eq!(created.position, 7);
+
+        let read = List::read(&pool, created.id).await.expect("read");
+        assert_eq!(read.name, "inbox");
+        assert_eq!(read.position, 7);
+    }
+}

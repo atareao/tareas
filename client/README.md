@@ -1,5 +1,8 @@
 # React + TypeScript + Vite
 
+> **Gestor de paquetes:** instala dependencias y construye con `pnpm` (`pnpm install`, `pnpm run build`).
+> `npm install` **no** aplica los `overrides` de seguridad de `pnpm-workspace.yaml`.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

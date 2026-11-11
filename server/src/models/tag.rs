@@ -122,3 +122,41 @@ impl Tag {
             .await
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::test_utils::setup_pool;
+
+    /// `Tag::create` debe persistir la `position` (regresión del `bind` que
+    /// faltaba).
+    #[tokio::test]
+    async fn create_persists_position() {
+        let pool = setup_pool().await;
+
+        let created = Tag::create(&pool, "urgente", 3).await.expect("create");
+        assert_eq!(created.position, 3);
+
+        let read = Tag::read(&pool, created.id).await.expect("read");
+        assert_eq!(read.name, "urgente");
+        assert_eq!(read.position, 3);
+    }
+
+    /// `Tag::update` debe afectar a la fila (regresión del typo `poistion`).
+    #[tokio::test]
+    async fn update_changes_row() {
+        let pool = setup_pool().await;
+        let created = Tag::create(&pool, "urgente", 1).await.expect("create");
+
+        let updated = Tag::update(&pool, created.id, "no urgente", 9)
+            .await
+            .expect("update");
+        assert_eq!(updated.id, created.id);
+        assert_eq!(updated.name, "no urgente");
+        assert_eq!(updated.position, 9);
+
+        let read = Tag::read(&pool, created.id).await.expect("read");
+        assert_eq!(read.name, "no urgente");
+        assert_eq!(read.position, 9);
+    }
+}
