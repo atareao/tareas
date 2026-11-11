@@ -6,7 +6,7 @@
 FROM node:22-slim AS client-builder
 WORKDIR /client-builder
 RUN npm install -g pnpm@12
-COPY ./client/package.json ./client/pnpm-lock.yaml ./
+COPY ./client/package.json ./client/pnpm-lock.yaml ./client/pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 COPY ./client ./
 RUN pnpm run build
