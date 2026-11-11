@@ -37,3 +37,14 @@
 - [ ] PR `feature/*` → `development`, CI verde, merge.
 - [ ] PR `development` → `main` (release) y comprobación de que las alertas pasan a 0.
 - [ ] `docs/gitflow.md`.
+
+## Resultado
+
+| Objetivo | Estado |
+|---|---|
+| Gitflow configurado (`development`, workflows, vampus, cliff, dependabot, docs) | ✅ |
+| PR #4 de Dependabot mergeado | ✅ |
+| 59 alertas npm de Dependabot | ✅ 0 abiertas (58 descartadas con `fix_started` + #67; gráfica de dependencias ya en vite 8.3.8) |
+| 5 vulnerabilidades + 6 warnings de `cargo audit` | ✅ 0 |
+| CI verde (fmt, clippy -D warnings, test, lint, build, cargo audit, pnpm audit) | ✅ |
+| Release `v0.1.0` (tag + imagen GHCR + GitHub Release) | ✅ |
