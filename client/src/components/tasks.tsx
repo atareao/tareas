@@ -25,7 +25,7 @@ const replaceContent = (fromTasks: ApiTask[], toTasks: ApiTask[]): ApiTask[] => 
 
 export default class Tasks extends React.Component<TasksProps, TasksState> {
 
-    private createTask: React.RefObject<CreateTask>;
+    private createTask: React.RefObject<CreateTask | null>;
 
 
     constructor(props: TasksProps) {
