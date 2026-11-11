@@ -1,0 +1,155 @@
+name: Prepare Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Version, changelog and tag
+    if: "!startsWith(github.event.head_commit.message, 'chore: release')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          # `secrets.GH_PAT` permite que el push del tag dispare el workflow
+          # `release.yml` (un push hecho con `GITHUB_TOKEN` no dispara otros
+          # workflows). Si el PAT no está configurado, se usa `GITHUB_TOKEN`:
+          # la release se marca y se etiqueta igual, pero la imagen se tendrá
+          # que construir relanzando `release.yml` a mano.
+          token: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
+
+      - name: Install git-cliff
+        uses: taiki-e/install-action@v2
+        with:
+          tool: git-cliff
+
+      - name: Install vampus
+        run: cargo install vampus --git https://github.com/atareao/vampus
+
+      # Un merge a `main` puede llegar en tres estados. Comparar la versión de
+      # `.vampus.yml` con el tag que la apunta los distingue, lo que mantiene
+      # el job idempotente:
+      #
+      #   skip  -> `v$CURRENT` existe y HEAD *es* ese tag. Nada que publicar.
+      #   bump  -> `v$CURRENT` existe pero HEAD tiene commits nuevos.
+      #   tag   -> `v$CURRENT` aún no está etiquetada (el PR de release ya la
+      #            subió a mano): sólo changelog + tag.
+      - name: Decide what to do
+        id: state
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          CURRENT=$(grep '^current_version' .vampus.yml | sed 's/.*: *//')
+          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+          echo "last_tag=$LAST_TAG" >> "$GITHUB_OUTPUT"
+
+          if git rev-parse -q --verify "refs/tags/v$CURRENT" >/dev/null; then
+            TAGGED_SHA=$(git rev-list -n1 "v$CURRENT")
+            if [ "$TAGGED_SHA" = "$(git rev-parse HEAD)" ]; then
+              echo "action=skip" >> "$GITHUB_OUTPUT"
+              echo "v$CURRENT is already released and HEAD is exactly that tag: nothing to release."
+            else
+              echo "action=bump" >> "$GITHUB_OUTPUT"
+              echo "v$CURRENT is released but HEAD has newer commits: bumping."
+            fi
+          else
+            echo "action=tag" >> "$GITHUB_OUTPUT"
+            echo "v$CURRENT is not tagged yet (bumped in the release PR): tagging only."
+          fi
+
+      - name: Determine bump type from commits
+        if: steps.state.outputs.action == 'bump'
+        id: bump
+        run: |
+          LAST_TAG="${{ steps.state.outputs.last_tag }}"
+          BASE=${LAST_TAG:-$(git rev-list --max-parents=0 HEAD | head -1)}
+          COMMITS=$(git log "$BASE"..HEAD --format="%s")
+          if echo "$COMMITS" | grep -qE "BREAKING CHANGE|!:"; then
+            echo "type=--major" >> "$GITHUB_OUTPUT"
+          elif echo "$COMMITS" | grep -qE "^✨ ?feat|^feat"; then
+            echo "type=--minor" >> "$GITHUB_OUTPUT"
+          else
+            echo "type=--patch" >> "$GITHUB_OUTPUT"
+          fi
+
+      # vampus compara sus patrones `replaces` contra el literal de la versión
+      # *actual*, así que todos los ficheros gestionados deben estar en sync con
+      # `.vampus.yml:current_version` de antemano.
+      - name: Bump version with vampus
+        if: steps.state.outputs.action == 'bump'
+        run: |
+          BEFORE=$(grep '^current_version' .vampus.yml | sed 's/.*: *//')
+          vampus upgrade ${{ steps.bump.outputs.type }}
+          AFTER=$(grep '^current_version' .vampus.yml | sed 's/.*: *//')
+          if [ "$BEFORE" = "$AFTER" ]; then
+            echo "::error::vampus left the version at $BEFORE instead of bumping it."
+            echo "Most likely cause: a file listed in .vampus.yml's 'replaces' is missing."
+            exit 1
+          fi
+          echo "Bumped $BEFORE -> $AFTER"
+
+      # vampus sube la versión en `server/Cargo.toml`, pero `server/Cargo.lock`
+      # lleva su propia copia en su entrada `[[package]]`. Dejarla atrás rompe
+      # `cargo --locked` en el tag de release.
+      - name: Sync Cargo.lock with the bumped version
+        if: steps.state.outputs.action == 'bump'
+        run: |
+          read_locked() {
+            sed -n '/^name = "server"$/{n;s/^version = "\(.*\)"$/\1/p;}' server/Cargo.lock
+          }
+          BEFORE=$(read_locked)
+          cargo update --manifest-path server/Cargo.toml --package server
+          AFTER=$(read_locked)
+          if [ "$BEFORE" = "$AFTER" ]; then
+            echo "::error::Cargo.lock stayed at $BEFORE instead of syncing with the bump."
+            exit 1
+          fi
+          echo "Cargo.lock synced: $BEFORE -> $AFTER"
+
+      - name: Read release version
+        if: steps.state.outputs.action != 'skip'
+        id: version
+        run: |
+          V=$(grep '^current_version' .vampus.yml | sed 's/.*: *//')
+          echo "value=$V" >> "$GITHUB_OUTPUT"
+          echo "Releasing v$V"
+
+      - name: Generate changelog
+        if: steps.state.outputs.action != 'skip'
+        run: git-cliff -o CHANGELOG.md --tag "v${{ steps.version.outputs.value }}"
+
+      - name: Commit, tag and push
+        if: steps.state.outputs.action != 'skip'
+        run: |
+          V="${{ steps.version.outputs.value }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Nothing to commit."
+          else
+            git commit -m "chore: release v${V}"
+            git push origin main
+          fi
+          if git rev-parse -q --verify "refs/tags/v${V}" >/dev/null; then
+            echo "Tag v${V} already exists, not creating it again."
+          else
+            git tag "v${V}"
+            git push origin "v${V}"
+          fi
+
+      - name: Sync development with main
+        run: |
+          if ! git fetch origin development; then
+            echo "::error::cannot fetch origin/development. Most likely the branch was deleted by 'gh pr merge --delete-branch' on the release PR."
+            exit 1
+          fi
+          git checkout -B development origin/development
+          git merge origin/main --no-edit
+          git push origin development
