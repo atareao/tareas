@@ -13,7 +13,7 @@ interface MainMenuState {
 }
 
 
-export default class MainMenu extends React.Component<{}, MainMenuState> {
+export default class MainMenu extends React.Component<Record<string, never>, MainMenuState> {
 
     private tasks: React.RefObject<Tasks>;
 

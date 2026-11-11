@@ -89,7 +89,7 @@ export default class Tasks extends React.Component<TasksProps, TasksState> {
         console.log(`Component did update ${props.listId} - ${this.state.listId}`);
         return true;
     }
-    shouldComponentUpdate = (props: any) => {
+    shouldComponentUpdate = (props: Readonly<TasksProps>) => {
         console.log(`shouldComponentUpdate ${props}`);
         return true;
     }
