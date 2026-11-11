@@ -17,26 +17,26 @@
 - [x] `GIT_FLOW.md` y `AGENTS.md` del proyecto.
 - [x] Versionar `server/Cargo.lock` (la imagen se construye con `--locked`).
 - [x] `.dockerignore`.
-- [ ] Endurecer `Dockerfile` (pnpm reproducible + usuario no root).
+- [x] Endurecer `Dockerfile` (pnpm reproducible + usuario no root).
 
 ### 2. Mergear el PR abierto de Dependabot
 - [x] PR #4 (vite 6.0.7 → 6.0.14) retargeteado a `development` y mergeado.
 
 ### 3. Resolver las 59 alertas de Dependabot (frontend)
-- [ ] Subir dependencias directas a la última estable (vite, eslint, typescript-eslint, typescript, MUI, emotion…).
-- [ ] `pnpm.overrides` para transitivas que sigan vulnerables.
-- [ ] `pnpm audit` = 0 vulnerabilidades.
+- [x] Subir dependencias directas a la última estable (vite, eslint, typescript-eslint, typescript, MUI, emotion…).
+- [x] Overrides para transitivas que sigan vulnerables.
+- [x] `pnpm audit` = 0 vulnerabilidades.
 
 ### 4. Dejar el CI en verde
-- [ ] `cargo fmt --all -- --check` OK.
-- [ ] `cargo clippy --all-targets -- -D warnings` OK.
-- [ ] `pnpm run lint` OK (7 errores ESLint actuales).
-- [ ] `pnpm run build` OK.
+- [x] `cargo fmt --all -- --check` OK.
+- [x] `cargo clippy --all-targets -- -D warnings` OK.
+- [x] `pnpm run lint` OK (7 errores ESLint actuales).
+- [x] `pnpm run build` OK.
 
 ### 5. Cierre
-- [ ] PR `feature/*` → `development`, CI verde, merge.
-- [ ] PR `development` → `main` (release) y comprobación de que las alertas pasan a 0.
-- [ ] `docs/gitflow.md`.
+- [x] PR `feature/*` → `development`, CI verde, merge.
+- [x] PR `development` → `main` (release) y alertas a 0.
+- [x] `docs/gitflow.md`.
 
 ## Resultado
 
