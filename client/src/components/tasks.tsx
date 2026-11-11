@@ -85,14 +85,6 @@ export default class Tasks extends React.Component<TasksProps, TasksState> {
         return true;
     }
 
-    componentDidUpdate = async (props: TasksProps) => {
-        console.log(`Component did update ${props.listId} - ${this.state.listId}`);
-        return true;
-    }
-    shouldComponentUpdate = (props: any) => {
-        console.log(`shouldComponentUpdate ${props}`);
-        return true;
-    }
     forceRender = () => {
         console.log(`Force render ${this.state.listId}`);
         if(this.state.listId != null){

@@ -11,7 +11,7 @@ import ApiList from '../models/api_list';
 
 interface CreateTaskProps {
     listId: number | null;
-    onCallback: Function;
+    onCallback: () => void;
 }
 interface CreateTaskState {
     listId: number | null;
@@ -55,7 +55,7 @@ export default class CreateTask extends React.Component<CreateTaskProps, CreateT
                         onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
                             event.preventDefault();
                             const formData = new FormData(event.currentTarget);
-                            const formJson = Object.fromEntries((formData as any).entries());
+                            const formJson = Object.fromEntries(formData.entries());
                             console.log(`/api/v1/tasks/${this.state.listId}`);
                             fetch(`/api/v1/tasks/${this.state.listId}`, {
                                 method: 'POST',
