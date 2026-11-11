@@ -1,17 +1,16 @@
 mod api;
 mod error;
 mod list;
-mod task;
-mod tag;
-mod task_tag;
 mod state;
+mod tag;
+mod task;
+mod task_tag;
 
-pub use list::List;
-pub use task::Task;
-pub use tag::Tag;
-pub use task_tag::TaskTag;
+pub use api::{Data, OptionalId, Response};
 pub use error::Error;
+pub use list::List;
 pub use state::AppState;
-pub use api::{Response, Data, OptionalId};
-
-
+pub use task::Task;
+// `Tag` y `TaskTag` se conservan en sus módulos (ver `#[allow(dead_code)]`)
+// pero no se re-exportan todavía: la feature de etiquetado no está expuesta
+// en la API HTTP, así que ningún consumidor los referencia aún.

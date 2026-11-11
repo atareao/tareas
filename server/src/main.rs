@@ -1,28 +1,21 @@
-mod models;
 mod http;
+mod models;
 
 use sqlx::{
     migrate::{MigrateDatabase, Migrator},
     sqlite::SqlitePoolOptions,
 };
 
+use crate::{
+    http::{health_router, list_router, task_router},
+    models::{AppState, Error},
+};
 use axum::Router;
 use std::sync::Arc;
 use std::{env::var, path::Path, str::FromStr};
 use tower_http::services::{ServeDir, ServeFile};
 use tracing::{debug, info};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
-use crate::{
-    http::{
-        health_router,
-        list_router,
-        task_router,
-    },
-    models::{
-        Error,
-        AppState,
-    }
-};
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {

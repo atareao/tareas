@@ -1,6 +1,6 @@
-use crate::models::{AppState, Data, Task, OptionalId, Response};
+use crate::models::{AppState, Data, OptionalId, Response, Task};
 use axum::{
-    extract::{Query, State, Path},
+    extract::{Path, Query, State},
     http::StatusCode,
     response::IntoResponse,
     routing, Json, Router,
@@ -10,14 +10,10 @@ use tracing::{debug, error};
 
 pub fn task_router() -> Router<Arc<AppState>> {
     Router::new()
-        .route("/{list_id}",
-            routing::post(create))
-        .route("/{list_id}",
-            routing::get(read))
-        .route("/",
-            routing::put(update))
-        .route("/",
-            routing::delete(delete))
+        .route("/{list_id}", routing::post(create))
+        .route("/{list_id}", routing::get(read))
+        .route("/", routing::put(update))
+        .route("/", routing::delete(delete))
 }
 
 async fn create(
@@ -32,10 +28,7 @@ async fn create(
     };
     let position = body["position"].as_i64().unwrap_or_default();
     match Task::create(&app_state.pool, name, position, list_id).await {
-        Ok(task) => Response::create(
-            StatusCode::CREATED, 
-            "Created",
-            Data::One(task.to_json())),
+        Ok(task) => Response::create(StatusCode::CREATED, "Created", Data::One(task.to_json())),
         Err(e) => {
             error!("Error creating task: {:?}", e);
             Response::create(
@@ -43,7 +36,7 @@ async fn create(
                 e.to_string().as_str(),
                 Data::None,
             )
-        },
+        }
     }
 }
 
@@ -100,9 +93,7 @@ async fn update(
     };
     let done = match body["done"].as_bool() {
         Some(done) => done,
-        None => {
-            return Response::create(StatusCode::BAD_REQUEST, "Done is required", Data::None)
-        }
+        None => return Response::create(StatusCode::BAD_REQUEST, "Done is required", Data::None),
     };
     match Task::update(&app_state.pool, id, name, position, done).await {
         Ok(task) => Response::create(StatusCode::OK, "Updated", Data::One(task.to_json())),
