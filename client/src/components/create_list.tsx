@@ -10,10 +10,14 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import ApiList from '../models/api_list';
 
 interface CreateListProps {
-    onCallback: Function;
+    onCallback: () => void;
 }
 
-export default class CreateList extends React.Component<CreateListProps, any> {
+interface CreateListState {
+    open: boolean;
+}
+
+export default class CreateList extends React.Component<CreateListProps, CreateListState> {
 
     constructor(props: CreateListProps) {
         super(props);
@@ -46,7 +50,7 @@ export default class CreateList extends React.Component<CreateListProps, any> {
                         onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
                             event.preventDefault();
                             const formData = new FormData(event.currentTarget);
-                            const formJson = Object.fromEntries((formData as any).entries());
+                            const formJson = Object.fromEntries(formData.entries());
                             fetch('/api/v1/lists', {
                                 method: 'POST',
                                 headers: {
