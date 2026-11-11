@@ -72,3 +72,12 @@ Permisos: en *Settings → Actions → General*, permitir que los workflows teng
 - Añadir tests (Vitest en `client`, tests de integración en `server`) y
   `pnpm run test` al job de frontend del CI.
 - Añadir `pnpm audit --audit-level=high` como paso del CI.
+
+## Merge del PR de release
+
+El PR `development -> main` debe mergearse con **merge commit**
+(`gh pr merge <n> --merge`), **no** con squash. `release-prepare.yml` genera el
+CHANGELOG con `git-cliff` sobre la historia de `main`: si el release PR se
+squashea, los commits individuales no llegan a `main` y la release queda sin
+entradas (solo `Miscellaneous Tasks - Release vX`). Con merge commit la historia
+se conserva y el CHANGELOG sale completo, como en `atareao/shuul`.
