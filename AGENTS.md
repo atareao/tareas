@@ -24,6 +24,7 @@ Este proyecto sigue **Git Flow** estricto. Ver [GIT_FLOW.md](./GIT_FLOW.md):
 | Lint backend | `cd server && cargo clippy --all-targets -- -D warnings` |
 | Lint frontend | `cd client && pnpm run lint` |
 | Build frontend | `cd client && pnpm run build` |
+| Auditar vulnerabilidades | `cd server && cargo audit` · `cd client && pnpm audit` |
 
 ## Convenciones
 
@@ -31,3 +32,9 @@ Este proyecto sigue **Git Flow** estricto. Ver [GIT_FLOW.md](./GIT_FLOW.md):
 - Frontend: componentes en `client/src/components/`, modelos de API en
   `client/src/models/`.
 - `server/Cargo.lock` **se versiona** (es una aplicación, no una librería).
+- El frontend **se instala y se construye con `pnpm`**; `npm install` ignora los
+  `overrides` de seguridad de `client/pnpm-workspace.yaml`.
+- `server/vendor/sqlx-sqlite` es un parche temporal de seguridad (ver
+  `docs/seguridad-dependencias.md`); no editar sin leer su README.
+- CI: ver [docs/gitflow.md](./docs/gitflow.md) y
+  [docs/seguridad-dependencias.md](./docs/seguridad-dependencias.md).

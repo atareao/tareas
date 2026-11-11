@@ -1,8 +1,18 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use sqlx::{sqlite::{SqliteRow, SqlitePool}, Row, error::Error, query};
 use serde_json::Value;
+use sqlx::{
+    error::Error,
+    query,
+    sqlite::{SqlitePool, SqliteRow},
+    Row,
+};
 
+/// Relación tarea–etiqueta.
+///
+/// Modelo previsto: aún no está expuesto en la API HTTP, por eso se conserva
+/// con `#[allow(dead_code)]` en lugar de eliminarse.
+#[allow(dead_code)]
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TaskTag {
     pub id: i32,
@@ -12,18 +22,19 @@ pub struct TaskTag {
     pub updated_at: DateTime<Utc>,
 }
 
+#[allow(dead_code)]
 impl TaskTag {
-    fn from_row(row: SqliteRow) -> Self{
-        Self{
+    fn from_row(row: SqliteRow) -> Self {
+        Self {
             id: row.get("id"),
             task_id: row.get("task_id"),
-            tag_id: row.get("task_id"),
+            tag_id: row.get("tag_id"),
             created_at: row.get("created_at"),
             updated_at: row.get("updated_at"),
         }
     }
 
-    pub fn to_json(&self) -> Value{
+    pub fn to_json(&self) -> Value {
         serde_json::json!({
             "id": self.id,
             "task_id": self.task_id,
@@ -33,7 +44,7 @@ impl TaskTag {
         })
     }
 
-    pub async fn create(pool: &SqlitePool, task_id: i64, tag_id: i64) -> Result<Self, Error>{
+    pub async fn create(pool: &SqlitePool, task_id: i64, tag_id: i64) -> Result<Self, Error> {
         let sql = "INSERT INTO tasks_tags (task_id, tag_id, created_at, updated_at) VALUES ($1, $2, $3, $3) RETURNING *";
         query(sql)
             .bind(task_id)
@@ -44,7 +55,7 @@ impl TaskTag {
             .await
     }
 
-    pub async fn read(pool: &SqlitePool, id: i32) -> Result<Self, Error>{
+    pub async fn read(pool: &SqlitePool, id: i32) -> Result<Self, Error> {
         let sql = "SELECT * FROM tasks_tags WHERE id = $1";
         query(sql)
             .bind(id)
@@ -53,7 +64,7 @@ impl TaskTag {
             .await
     }
 
-    pub async fn read_all(pool: &SqlitePool, list_id: i64) -> Result<Vec<Self>, Error>{
+    pub async fn read_all(pool: &SqlitePool, list_id: i64) -> Result<Vec<Self>, Error> {
         let sql = "SELECT * FROM tasks_tags WHERE list_id = $1";
         query(sql)
             .bind(list_id)
@@ -62,8 +73,9 @@ impl TaskTag {
             .await
     }
 
-    pub async fn update(pool: &SqlitePool, id: i32, name: &str, done: bool) -> Result<Self, Error>{
-        let sql = "UPDATE tasks_tags SET name = $1, done = $2, updated_at = $3 WHERE id = $4 RETURNING *";
+    pub async fn update(pool: &SqlitePool, id: i32, name: &str, done: bool) -> Result<Self, Error> {
+        let sql =
+            "UPDATE tasks_tags SET name = $1, done = $2, updated_at = $3 WHERE id = $4 RETURNING *";
         query(sql)
             .bind(name)
             .bind(done)
@@ -74,7 +86,7 @@ impl TaskTag {
             .await
     }
 
-    pub async fn delete(pool: &SqlitePool, id: i32) -> Result<Self, Error>{
+    pub async fn delete(pool: &SqlitePool, id: i32) -> Result<Self, Error> {
         let sql = "DELETE FROM tasks_tags WHERE id = $1 RETURNING *";
         query(sql)
             .bind(id)
@@ -83,7 +95,7 @@ impl TaskTag {
             .await
     }
 
-    pub async fn search(pool: &SqlitePool, list_id: i64, name: &str) -> Result<Vec<Self>, Error>{
+    pub async fn search(pool: &SqlitePool, list_id: i64, name: &str) -> Result<Vec<Self>, Error> {
         let sql = "SELECT * FROM tasks_tags WHERE list_id = $1 AND LOWER(name) LIKE $2";
         query(sql)
             .bind(list_id)
@@ -91,5 +103,33 @@ impl TaskTag {
             .map(Self::from_row)
             .fetch_all(pool)
             .await
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::{tag::Tag, task::Task, test_utils::setup_pool, List};
+
+    /// `TaskTag::from_row` debe leer `tag_id` de la columna `tag_id`
+    /// (regresión: leía `"task_id"`).
+    #[tokio::test]
+    async fn from_row_maps_tag_id_from_tag_id_column() {
+        let pool = setup_pool().await;
+        let list = List::create(&pool, "inbox", 0).await.expect("list");
+        let task = Task::create(&pool, "una tarea", 0, list.id)
+            .await
+            .expect("task");
+        let tag = Tag::create(&pool, "urgente", 0).await.expect("tag");
+
+        let link = TaskTag::create(&pool, task.id, tag.id)
+            .await
+            .expect("create");
+        assert_eq!(i64::from(link.task_id), task.id);
+        assert_eq!(i64::from(link.tag_id), tag.id);
+
+        let read = TaskTag::read(&pool, link.id).await.expect("read");
+        assert_eq!(i64::from(read.task_id), task.id);
+        assert_eq!(i64::from(read.tag_id), tag.id);
     }
 }

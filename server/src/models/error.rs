@@ -7,6 +7,9 @@ use tracing::error;
 #[derive(Debug)]
 pub enum Error {
     Io(String),
+    /// Variante genérica reservada para futuros errores de dominio.
+    /// Se mantiene porque forma parte de la API pública del enum de errores.
+    #[allow(dead_code)]
     SomeError,
 }
 
@@ -36,4 +39,3 @@ impl IntoResponse for Error {
         (StatusCode::INTERNAL_SERVER_ERROR, body).into_response()
     }
 }
-
