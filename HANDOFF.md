@@ -23,11 +23,10 @@ Referencia: `atareao/shuul` conserva los commits en `main` (CHANGELOG rico).
 
 ## Tarea pendiente / siguiente paso
 
-1. **Añadir el secreto `GH_PAT`** (Settings → Secrets → Actions) para que el push
-   del tag dispare `release.yml` automáticamente. Sin él, `release-prepare.yml`
-   usa `GITHUB_TOKEN`, la release se etiqueta igual pero la imagen hay que
-   relanzarla a mano (`gh workflow run release.yml --ref vX.Y.Z`). Así se
-   publicaron v0.1.0 y v0.1.1.
+1. **Secreto `GH_PAT`: configurado** (scopes `repo` + `workflow`; valor en crypta
+   como `gh_pat`). Ya no hace falta relanzar `release.yml` a mano: el push del tag
+   dispara la imagen automáticamente (v0.1.0 y v0.1.1 se publicaron a mano *antes*
+   de añadir el secreto; la próxima release lo comprobará de extremo a extremo).
 2. Issue **#8**: SQL roto en el modelo de etiquetado (`Tag`/`TaskTag`, código no
    expuesto en la API).
 3. Follow-up: eliminar `server/vendor/sqlx-sqlite` cuando sqlx amplíe el rango de
